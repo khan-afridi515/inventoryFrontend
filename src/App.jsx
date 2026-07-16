@@ -1,28 +1,36 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from "./home";
-import Sidebar from './component/sidebar'
+import Sidebar from './component/sidebar';
+import Navbar from './component/Navbar';
+import Home from './pages/home';
+import Product from './pages/product/products'
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   return (
-    <>
     <Router>
-      <Routes>
-       <Route path="/" element={<Home/>} />
-       <Route path="/sidebar" element={<Sidebar/>} />
+      <div className="min-h-screen bg-slate-50/50">
+       
+        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+
         
-     
-      </Routes>
+        <div className="pl-[260px]">
+          
+          
+          <Navbar activeTab={activeTab} />
 
+          
+          <main className="pt-16 p-8 min-h-[calc(100vh-64px)]">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/product" element={<Product />} />
+             
+            </Routes>
+          </main>
+
+        </div>
+      </div>
     </Router>
-    </>
-  )
+  );
 }
-
-export default App
