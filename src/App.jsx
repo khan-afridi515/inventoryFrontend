@@ -1,41 +1,38 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from "./home";
-import Sidebar from './component/sidebar'
-// import Dashboard from './pages/dashboard/dashboard'
-import AddProduct from './pages/addProduct/AddProduct'
 import Sidebar from './component/sidebar';
 import Navbar from './component/Navbar';
 import Home from './pages/home';
-import Product from './pages/product/products'
+import Product from './pages/product/products';
+import AddProduct from './pages/addProduct/AddProduct';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   return (
     <Router>
-      <Routes>
-       <Route path="/" element={<Home/>} />
-       <Route path="/sidebar" element={<Sidebar/>} />
-        <Route path="/add-product" element={<AddProduct/>}/>
-     
-      </Routes>
       <div className="min-h-screen bg-slate-50/50">
-       
+        
+        {/* Sidebar is global (rendered on all pages) */}
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
-        
-        <div className="pl-[260px]">
+        {/* Main Content Area (shifted 260px right to make room for Sidebar) */}
+        <div className="lg:pl-[260px]">
           
-          
+          {/* Top Navbar */}
           <Navbar activeTab={activeTab} />
 
-          
+          {/* Main Panel where pages swap out */}
           <main className="pt-16 p-8 min-h-[calc(100vh-64px)]">
             <Routes>
+              {/* Home Page */}
               <Route path="/" element={<Home />} />
-              <Route path="/product" element={<Product />} />
-             
+              
+              {/* Products Page (Mapped to "/products" to match the Sidebar links) */}
+              <Route path="/products" element={<Product />} />
+              
+              {/* Add Product Page */}
+              <Route path="/add-product" element={<AddProduct />} />
             </Routes>
           </main>
 
