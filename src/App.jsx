@@ -6,6 +6,8 @@ import './App.css'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from "./home";
 import Sidebar from './component/sidebar'
+// import Dashboard from './pages/dashboard/dashboard'
+import AddProduct from './pages/addProduct/AddProduct'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -16,7 +18,7 @@ function App() {
       <Routes>
        <Route path="/" element={<Home/>} />
        <Route path="/sidebar" element={<Sidebar/>} />
-        
+        <Route path="/add-product" element={<AddProduct/>}/>
      
       </Routes>
 

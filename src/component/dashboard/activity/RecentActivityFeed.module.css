@@ -1,0 +1,18 @@
+/* CSS Module — scoped automatically by Vite (class names are hashed).
+   Used only for the one thing Tailwind's utility classes can't express
+   cleanly: styling the scrollbar track/thumb via ::-webkit-scrollbar.
+   Everything else in this component uses Tailwind classes directly. */
+
+.scrollArea {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.scrollArea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollArea::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 999px;
+}
