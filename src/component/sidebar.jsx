@@ -57,8 +57,8 @@ export default function Sidebar({ activeTab, setActiveTab }) {
           </span>
         </div>
 
-        {/* Navigation Menu (Tightly spaced with space-y-1) */}
-        <nav className="flex flex-col space-y-1 px-3">
+        {/* Navigation Menu */}
+        <nav className="flex flex-col space-y-0.5 px-3">
           {menuItems.map((item) => {
             const IconComponent = item.icon; 
             const isActive = activeTab === item.id;
@@ -68,7 +68,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
                 key={item.id}
                 to={item.path}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 group ${
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg transition-all duration-200 group ${
                   isActive 
                     ? 'bg-[#E3F2FD] text-[#3B82F6]' 
                     : 'text-[#475569] hover:bg-[#F1F5F9]'
@@ -78,7 +78,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
                   <IconComponent className={`h-5 w-5 transition-colors ${
                     isActive ? 'text-[#3B82F6]' : 'text-[#64748B]'
                   }`} />
-                  <span className={`text-xs font-medium ${isActive ? 'font-semibold' : ''}`}>
+                  <span className={`text-sm font-medium ${isActive ? 'font-semibold' : ''}`}>
                     {item.label}
                   </span>
                 </div>
