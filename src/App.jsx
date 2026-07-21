@@ -5,6 +5,8 @@ import Navbar from './component/Navbar';
 import Home from './pages/home';
 import Product from './pages/product/products';
 import AddProduct from './pages/addProduct/AddProduct';
+import Dashboard from './pages/dashboard/Dashboard';
+import Redirect from './redirect';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -26,10 +28,15 @@ export default function App() {
           <main className="pt-16 p-8 min-h-[calc(100vh-64px)]">
             <Routes>
               {/* Home Page */}
-              <Route path="/" element={<Home />} />
+              {/* <Route path="/" element={<Home />} /> */}
               
               {/* Products Page (Mapped to "/products" to match the Sidebar links) */}
               <Route path="/products" element={<Product />} />
+
+              <Route path="/" element={<Dashboard />} />
+
+              <Route path="/auth/ebay/callback" element={<Redirect />} />
+
               
               {/* Add Product Page */}
               <Route path="/add-product" element={<AddProduct />} />
