@@ -7,67 +7,58 @@ const Redirect = () => {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const exchangeCodeForToken = async (authorizationCode) => {
+        try {
+            console.log('eBay authorization code received:', authorizationCode);
+            // TODO: send `authorizationCode` to your backend for token exchange.
+            setLoading(false);
+            navigate('/');
+        } catch (exchangeError) {
+            console.error('Token exchange failed:', exchangeError);
+            setError('Failed to complete eBay authorization.');
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
-        const code = params.get("code");
-        const state = params.get("state");
-        const errorParam = params.get("error");
-        const errorDescription = params.get("error_description");
+        const code = params.get('code');
+        const state = params.get('state');
+        const errorParam = params.get('error');
+        const errorDescription = params.get('error_description');
+
+        console.log("Code and state", code, state);
 
         // Handle authorization errors from eBay
         if (errorParam) {
-            console.error("eBay authorization error:", errorParam, errorDescription);
+            console.error('eBay authorization error:', errorParam, errorDescription);
             setError(`Authorization failed: ${errorDescription || errorParam}`);
             setLoading(false);
             return;
         }
 
         // Validate state token to prevent CSRF attacks
-        const storedState = sessionStorage.getItem("ebay_state");
+        const storedState = sessionStorage.getItem('ebay_state');
         if (!state || state !== storedState) {
-            console.error("State mismatch - possible CSRF attack");
-            setError("Invalid state: Possible security issue");
+            console.error('State mismatch - possible CSRF attack');
+            setError('Invalid state: Possible security issue');
             setLoading(false);
             return;
         }
 
         // Clear stored state after validation
-        sessionStorage.removeItem("ebay_state");
+        sessionStorage.removeItem('ebay_state');
 
         // Exchange code for token
         if (code) {
             exchangeCodeForToken(code);
         } else {
-            setError("No authorization code received");
+            setError('No authorization code received');
             setLoading(false);
         }
     }, [navigate]);
 
-    // const exchangeCodeForToken = async (code) => {
-    //     try {
-    //         const response = await fetch("/api/ebay/callback", {
-    //             method: "POST",
-    //             headers: { "Content-Type": "application/json" },
-    //             credentials: "include",
-    //             body: JSON.stringify({ code }),
-    //         });
-
-    //         if (!response.ok) {
-    //             const errorData = await response.json().catch(() => ({}));
-    //             throw new Error(errorData.message || `Server error: ${response.status}`);
-    //         }
-
-    //         const data = await response.json();
-    //         console.log("eBay authorization successful");
-
-    //         // Redirect to dashboard on success
-    //         navigate("/dashboard");
-    //     } catch (err) {
-    //         console.error("Token exchange failed:", err);
-    //         setError(`Connection failed: ${err.message}`);
-    //         setLoading(false);
-    //     }
-    // };
+ 
 
     if (error) {
         return (
