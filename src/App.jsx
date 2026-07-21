@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from "./home";
-import Sidebar from './component/sidebar'
 // import Dashboard from './pages/dashboard/dashboard'
 import AddProduct from './pages/addProduct/AddProduct'
 import Sidebar from './component/sidebar';
