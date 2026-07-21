@@ -1,4 +1,4 @@
-import { Panel } from '../common/Panel';
+import { Panel } from '../../addProduct/common/Panel';
 import { formatCurrency } from '../../../utils/formatCurrency';
 import { formatShortDate } from '../../../utils/formatDate';
 import { sanitizeText } from '../../../utils/sanitize';

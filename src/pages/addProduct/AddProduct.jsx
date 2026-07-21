@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../component/addProduct/layout/PageHeader';
 import { ProductImagePanel } from '../../component/addProduct/product-form/ProductImagePanel';
@@ -16,7 +17,11 @@ async function saveProduct(payload) {
   console.log('Saving product:', payload);
 }
 
-function AddProduct() {
+function AddProduct({ setActiveTab }) {
+  useEffect(() => {
+    if (setActiveTab) setActiveTab('add-product');
+  }, [setActiveTab]);
+
   const navigate = useNavigate();
   const {
     formData,
@@ -31,7 +36,7 @@ function AddProduct() {
   } = useProductForm(saveProduct);
 
   return (
-    <div className="mx-auto max-w-5xl p-6">
+    <div className="dashboard-page-container mx-auto max-w-5xl  px-6 lg:px-8 pt-1 pb-5 -mt-2">
       <PageHeader title="Add Product" subtitle="Add a new item to your inventory catalog." />
 
       <form onSubmit={handleSubmit} noValidate className="space-y-4">

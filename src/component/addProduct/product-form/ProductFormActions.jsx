@@ -13,7 +13,7 @@ export function ProductFormActions({ isSubmitting, onReset, onCancel }) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-20[#4479EE] focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
+        className="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-6 py-3 text-sm font-semibold text-white hover:bg-[#1D4ED8] focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 transition-colors"
       >
         <Check size={16} strokeWidth={2} />
         {isSubmitting ? "Saving…" : "Save Product"}

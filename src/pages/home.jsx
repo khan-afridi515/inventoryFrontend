@@ -1,6 +1,10 @@
-import React from 'react';
+import { useEffect } from 'react';
 
-export default function Home() {
+export default function Home({ setActiveTab }) {
+  useEffect(() => {
+    if (setActiveTab) setActiveTab('dashboard');
+  }, [setActiveTab]);
+
   return (
     <div>
       <h2 className="text-xl font-bold">Welcome to your Dashboard</h2>

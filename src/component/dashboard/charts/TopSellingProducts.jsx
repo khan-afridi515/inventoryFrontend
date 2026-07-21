@@ -7,7 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { Panel } from '../common/Panel';
+import { Panel } from '../../addProduct/common/Panel';
 import { CHART_COLORS } from '../../../constants/dashboard.constants';
 
 /**

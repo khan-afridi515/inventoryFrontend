@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutGrid, 
   Package, 
@@ -8,10 +8,13 @@ import {
   BarChart3, 
   TrendingUp, 
   Bell, 
-  Settings
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  X
 } from 'lucide-react';
 
-// Exact SVG matching the double-loop blue briefcase logo in your design
 const StockpileLogoIcon = () => (
   <svg 
     viewBox="0 0 24 24" 
@@ -28,8 +31,10 @@ const StockpileLogoIcon = () => (
   </svg>
 );
 
-export default function Sidebar({ activeTab, setActiveTab }) {
-  
+export default function Sidebar({ activeTab, setActiveTab, isCollapsed = false, toggleCollapse }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid, path: '/' },
     { id: 'products', label: 'Products', icon: Package, path: '/products' },
@@ -41,71 +46,125 @@ export default function Sidebar({ activeTab, setActiveTab }) {
     { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
   ];
 
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  const handleNavClick = (id) => {
+    if (setActiveTab) setActiveTab(id);
+    setMobileOpen(false);
+  };
+
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[260px] bg-white border-r border-[#E2E8F0] hidden lg:flex flex-col justify-between py-6 z-30 font-sans">
-      
-      {/* Top Container: Contains only logo and menu so they stack tightly at the top */}
-      <div className="flex flex-col">
-        
-        {/* Brand Header */}
-        <div className="flex items-center gap-3 px-6 pb-8">
-          <div className="w-11 h-11 rounded-[14px] bg-[#3B82F6] flex items-center justify-center shadow-sm flex-shrink-0">
-            <StockpileLogoIcon />
-          </div>
-          <span className="text-lg font-bold text-[#0F172A]">
-            Stockpile
-          </span>
-        </div>
+    <>
+      {/* Mobile Menu Icon Toggle Button */}
+      <button
+        onClick={() => setMobileOpen(!mobileOpen)}
+        className="lg:hidden fixed top-3 left-3 z-50 p-2 rounded-xl bg-white border border-[#E2E8F0] text-[#0F172A] shadow-xs hover:bg-[#F8FAFC] transition"
+        aria-label="Toggle Navigation"
+      >
+        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      </button>
 
-        {/* Navigation Menu (Tightly spaced with space-y-1) */}
-        <nav className="flex flex-col space-y-1 px-3">
-          {menuItems.map((item) => {
-            const IconComponent = item.icon; 
-            const isActive = activeTab === item.id;
+      {/* Backdrop */}
+      {mobileOpen && (
+        <div 
+          onClick={() => setMobileOpen(false)}
+          className="lg:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-30 transition-opacity"
+        />
+      )}
 
-            return (
-              <Link
-                key={item.id}
-                to={item.path}
-                onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 group ${
-                  isActive 
-                    ? 'bg-[#E3F2FD] text-[#3B82F6]' 
-                    : 'text-[#475569] hover:bg-[#F1F5F9]'
-                }`}
+      {/* Sidebar Drawer */}
+      <aside 
+        className={`fixed left-0 top-0 h-screen bg-white border-r border-[#E2E8F0] flex flex-col justify-between py-6 z-40 font-sans transition-all duration-300 ease-in-out ${
+          mobileOpen ? 'translate-x-0 w-[260px]' : '-translate-x-full lg:translate-x-0'
+        } ${
+          isCollapsed ? 'lg:w-[80px]' : 'lg:w-[260px]'
+        }`}
+      >
+        <div className="flex flex-col">
+          <div className={`flex items-center pb-8 px-4 ${isCollapsed ? 'lg:justify-center' : 'justify-between px-6'}`}>
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-11 h-11 rounded-[14px] bg-[#3B82F6] flex items-center justify-center shadow-sm shrink-0">
+                <StockpileLogoIcon />
+              </div>
+              {(!isCollapsed || mobileOpen) && (
+                <span className="text-lg font-bold text-[#0F172A] truncate">
+                  Stockpile
+                </span>
+              )}
+            </div>
+
+            {toggleCollapse && (
+              <button
+                onClick={toggleCollapse}
+                className="hidden lg:flex p-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors"
+                title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               >
-                <div className="flex items-center gap-3">
-                  <IconComponent className={`h-5 w-5 transition-colors ${
-                    isActive ? 'text-[#3B82F6]' : 'text-[#64748B]'
-                  }`} />
-                  <span className={`text-xs font-medium ${isActive ? 'font-semibold' : ''}`}>
-                    {item.label}
-                  </span>
-                </div>
-                
-                {item.badge && (
-                  <span className="bg-[#EF4444] text-white text-xs font-bold px-2.5 py-0.5 rounded-full min-w-[20px] h-5 flex items-center justify-center">
-                    {item.badge}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
-
-      {/* Bottom Container: Stays pushed all the way to the bottom, leaving a wide space above it */}
-      <div className="px-3">
-        <div className="flex items-center gap-3 p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl">
-          <div className="w-10 h-10 rounded-lg bg-[#DBEAFE] text-[#3B82F6] font-bold text-sm flex items-center justify-center flex-shrink-0">
-            AR
+                {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+              </button>
+            )}
           </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-xs font-semibold text-[#0F172A] truncate">Amara Reyes</span>
-            <span className="text-[11px] text-[#64748B] mt-0.5 truncate">Inventory Manager</span>
+
+          <nav className="flex flex-col space-y-1 px-3">
+            {menuItems.map((item) => {
+              const IconComponent = item.icon; 
+              const isActive = activeTab === item.id || location.pathname === item.path;
+
+              return (
+                <Link
+                  key={item.id}
+                  to={item.path}
+                  onClick={() => handleNavClick(item.id)}
+                  title={isCollapsed && !mobileOpen ? item.label : undefined}
+                  className={`w-full flex items-center rounded-lg transition-all duration-200 group ${
+                    isCollapsed && !mobileOpen ? 'lg:justify-center p-3' : 'justify-between px-4 py-3'
+                  } ${
+                    isActive 
+                      ? 'bg-[#E3F2FD] text-[#3B82F6]' 
+                      : 'text-[#475569] hover:bg-[#F1F5F9]'
+                  }`}
+                >
+                  <div className={`flex items-center gap-3 ${isCollapsed && !mobileOpen ? 'lg:justify-center' : ''}`}>
+                    <IconComponent className={`h-5 w-5 shrink-0 transition-colors ${
+                      isActive ? 'text-[#3B82F6]' : 'text-[#64748B]'
+                    }`} />
+                    
+                    {(!isCollapsed || mobileOpen) && (
+                      <span className={`text-sm font-medium ${isActive ? 'font-semibold' : ''}`}>
+                        {item.label}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {(!isCollapsed || mobileOpen) && item.badge && (
+                    <span className="bg-[#EF4444] text-white text-xs font-bold px-2.5 py-0.5 rounded-full min-w-5 h-5 flex items-center justify-center">
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        <div className="px-3">
+          <div className={`flex items-center bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl ${
+            isCollapsed && !mobileOpen ? 'lg:justify-center p-2.5' : 'gap-3 p-4'
+          }`}>
+            <div className="w-10 h-10 rounded-lg bg-[#DBEAFE] text-[#3B82F6] font-bold text-sm flex items-center justify-center shrink-0">
+              AR
+            </div>
+            {(!isCollapsed || mobileOpen) && (
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-semibold text-[#0F172A] truncate">Amara Reyes</span>
+                <span className="text-[11px] text-[#64748B] mt-0.5 truncate">Inventory Manager</span>
+              </div>
+            )}
           </div>
         </div>
-      </div>
-    </aside>
+
+      </aside>
+    </>
   );
 }

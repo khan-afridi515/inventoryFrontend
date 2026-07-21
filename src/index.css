@@ -1,1 +1,75 @@
 @import "tailwindcss";
+
+/* Load Outfit font used across the app */
+@font-face {
+	font-family: 'Outfit';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url(https://fonts.gstatic.com/s/outfit/v15/QGYvz_MVcBeNP4NJuktqQ4E.woff2) format('woff2');
+}
+
+@theme {
+	/* Custom color tokens used by dashboard KPI cards and charts */
+	--color-text: #0F172A;
+	--color-muted: #64748B;
+	--color-primary: #3B82F6;
+	--color-primary-light: #EFF6FF;
+	--color-positive: #10B981;
+	--color-negative: #EF4444;
+	--color-warning: #F59E0B;
+	--color-border: #E2E8F0;
+	--color-surface: #FFFFFF;
+	--color-bg: #F8FAFC;
+
+	/* Custom spacing tokens used across dashboard components */
+	--spacing-4\.5: 1.125rem;
+	--spacing-6\.5: 1.625rem;
+	--spacing-65: 16.25rem;
+}
+
+@layer base {
+	/* Normalize and set base typography + background */
+	*, *::before, *::after {
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0;
+	}
+
+	html, body, #root {
+		min-height: 100%;
+	}
+
+	body {
+		font-family: 'Outfit', system-ui, sans-serif;
+		background: #F8FAFC;
+		color: #0F172A;
+		min-height: 100vh;
+		margin: 0;
+		padding: 0;
+	}
+
+	/* Simple scrollbar styling */
+	::-webkit-scrollbar {
+		width: 8px;
+		height: 8px;
+	}
+
+	::-webkit-scrollbar-thumb {
+		background: #CBD5E1;
+		border-radius: 8px;
+	}
+}
+
+@layer utilities {
+	/* Optional utility to explicitly opt-in to the Outfit font */
+	.font-outfit { font-family: 'Outfit', system-ui, sans-serif; }
+
+	.page-content {
+		@apply w-full pt-4 pl-0 pr-4 pb-6 md:pl-1 md:pr-5 lg:pl-2 lg:pr-6 antialiased tracking-tight;
+	}
+
+	.dashboard-page-container {
+		@apply w-full pt-4 pl-0 pr-4 pb-6 md:pl-1 md:pr-5 lg:pl-2 lg:pr-6 antialiased tracking-tight;
+	}
+}
