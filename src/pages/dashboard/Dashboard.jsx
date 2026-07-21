@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useDashboardData } from '../../hooks/useDashboardData';
+import { config } from '../../config/env';
 import { DashboardHeader } from '../../component/dashboard/layout/DashboardHeader';
 import { DashboardLayout } from '../../component/dashboard/layout/DashboardLayout';
 import { KpiGrid } from '../../component/dashboard/kpi/KpiGrid';

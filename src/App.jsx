@@ -11,6 +11,7 @@ import Notifications from './pages/notification/notification';
 import Settings from './pages/setting/setting';
 import ProductPerformance from './pages/performance/productPerformance';
 
+import Redirect from './redirect';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -39,6 +40,16 @@ export default function App() {
               
               {/* Sales page view layout route - Added setActiveTab prop */}
               <Route path="/sales" element={<Sales setActiveTab={setActiveTab} />} />
+              {/* Home Page */}
+              {/* <Route path="/" element={<Home />} /> */}
+              
+              {/* Products Page (Mapped to "/products" to match the Sidebar links) */}
+              <Route path="/products" element={<Product />} />
+
+              <Route path="/" element={<Dashboard />} />
+
+              <Route path="/auth/ebay/callback" element={<Redirect />} />
+
               
               {/* Product Performance view layout route */}
               <Route path="/performance" element={<ProductPerformance setActiveTab={setActiveTab} />} />
