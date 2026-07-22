@@ -10,6 +10,7 @@ import Sales from './pages/sales/sale';
 import Notifications from './pages/notification/notification';
 import Settings from './pages/setting/setting';
 import ProductPerformance from './pages/performance/productPerformance';
+import Report from './pages/reports/Reports'
 
 import Redirect from './redirect';
 
@@ -37,6 +38,7 @@ export default function App() {
               <Route path="/home" element={<Home setActiveTab={setActiveTab} />} />
               <Route path="/products" element={<Product setActiveTab={setActiveTab} />} />
               <Route path="/add-product" element={<AddProduct setActiveTab={setActiveTab} />} />
+              <Route path='/reports' element={<Report/>}/>
               
               {/* Sales page view layout route - Added setActiveTab prop */}
               <Route path="/sales" element={<Sales setActiveTab={setActiveTab} />} />
