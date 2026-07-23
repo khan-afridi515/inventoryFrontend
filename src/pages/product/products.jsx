@@ -319,21 +319,21 @@ export default function Products({ setActiveTab }) {
         </div>
 
         <div className="flex items-center gap-3  ">
-          <button
+          {/* <button
             onClick={handleImportClick}
             className="flex items-center gap-2 px-4 py-2 border border-[#E2E8F0] bg-white rounded-full text-xs font-bold text-[#334155] hover:bg-slate-50 transition"
           >
             <Upload className="h-3.5 w-3.5" />
             <span>Import</span>
-          </button>
+          </button> */}
 
-          <button
+          {/* <button
             onClick={handleExport}
             className="flex items-center gap-2 px-4 py-2 border border-[#E2E8F0] bg-white rounded-full text-xs font-bold text-[#334155] hover:bg-slate-50 transition"
           >
             <Download className="h-3.5 w-3.5" />
             <span>Export</span>
-          </button>
+          </button> */}
 
           <button
             onClick={() => setIsAddModalOpen(true)}

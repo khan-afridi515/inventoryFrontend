@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
-import { 
-  Search, 
-  Download, 
-  TrendingUp, 
-  ShoppingBag, 
-  ArrowUpRight, 
-  ArrowDownRight, 
+import {
+  Search,
+  Download,
+  TrendingUp,
+  ShoppingBag,
+  ArrowUpRight,
+  ArrowDownRight,
   SlidersHorizontal,
   ChevronDown
 } from 'lucide-react';
@@ -61,7 +61,7 @@ export default function Sales({ setActiveTab }) {
 
   // Filter and sort sales list
   const filteredSales = useMemo(() => {
-    let result = salesData.filter(item => 
+    let result = salesData.filter(item =>
       item.product.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -123,7 +123,7 @@ export default function Sales({ setActiveTab }) {
 
   return (
     <div className="dashboard-page-container font-outfit p-6  px-6 lg:px-8 pt-1 pb-5 -mt-2" >
-      
+
       {/* Top Header Section */}
       <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between mb-6">
         <div>
@@ -133,18 +133,18 @@ export default function Sales({ setActiveTab }) {
           </p>
         </div>
 
-        <button
+        {/* <button
           onClick={handleExport}
           className="inline-flex items-center gap-2 px-4 py-2 border border-[#E2E8F0] bg-white rounded-xl text-[14px] font-normal text-[#0F172A] hover:bg-[#F8FAFC] transition shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
         >
           <Download className="h-4 w-4 stroke-[1.5]" />
           <span>Export</span>
-        </button>
+        </button> */}
       </div>
 
       {/* KPI Cards Row - Fixed Overflow & Preserved w-60 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        
+
         {/* Total Sales Card */}
         <div className="bg-white border border-[#E2E8F0] rounded-[20px] p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex flex-col justify-between h-27.5 w-57">
           <div className="flex items-center justify-between">
@@ -201,11 +201,11 @@ export default function Sales({ setActiveTab }) {
 
       {/* Main Table Structure Container */}
       <div className="bg-white border border-[#E2E8F0] rounded-3xl shadow-[0_1px_2px_rgba(15,23,42,0.04)] overflow-hidden">
-        
+
         {/* Search and Filters Bar */}
         <div className="p-4 border-b border-[#F1F5F9] bg-white flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row items-center gap-3">
-            
+
             {/* Search Input Box */}
             <div className="relative w-full sm:w-65">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
@@ -256,7 +256,7 @@ export default function Sales({ setActiveTab }) {
                 <th className="py-3.5 px-5 text-right font-normal">Total Cost</th>
                 <th className="py-3.5 px-5 text-right font-normal">Total Revenue</th>
                 <th className="py-3.5 px-5 text-right font-normal">Profit / Loss</th>
-                <th 
+                <th
                   className="py-3.5 px-5 text-right cursor-pointer select-none font-normal"
                   onClick={() => setSortByDate(sortByDate === 'desc' ? 'asc' : 'desc')}
                 >
@@ -267,7 +267,7 @@ export default function Sales({ setActiveTab }) {
                 </th>
               </tr>
             </thead>
-            
+
             <tbody className="divide-y divide-[#F1F5F9] text-[14px]">
               {filteredSales.length > 0 ? (
                 filteredSales.map((item) => {
