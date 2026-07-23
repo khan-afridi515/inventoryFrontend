@@ -30,6 +30,106 @@ const mapApiProduct = (item) => ({
   updatedAt: item.updatedAt,
 });
 
+/** Static fallback data — shown when the API is unreachable */
+const FALLBACK_PRODUCTS = [
+  {
+    id: 'fallback-1',
+    name: 'Bluetooth Speaker Mini',
+    category: 'Electronics',
+    img: null,
+    supplierName: 'Sample Supplier',
+    description: 'Demo product — API unavailable',
+    sku: 'DEMO-001',
+    sellingPrice: 20.00,
+    purchasePrice: 15.00,
+    quantity: 0,
+  },
+  {
+    id: 'fallback-2',
+    name: 'Wireless Charging Pad',
+    category: 'Electronics',
+    img: null,
+    supplierName: 'Sample Supplier',
+    description: 'Demo product — API unavailable',
+    sku: 'DEMO-002',
+    sellingPrice: 18.00,
+    purchasePrice: 12.50,
+    quantity: 8,
+  },
+  {
+    id: 'fallback-3',
+    name: 'Cotton Crew T-Shirt',
+    category: 'Apparel',
+    img: null,
+    supplierName: 'Sample Supplier',
+    description: 'Demo product — API unavailable',
+    sku: 'DEMO-003',
+    sellingPrice: 6.00,
+    purchasePrice: 4.20,
+    quantity: 320,
+  },
+  {
+    id: 'fallback-4',
+    name: 'Denim Jacket',
+    category: 'Apparel',
+    img: null,
+    supplierName: 'Sample Supplier',
+    description: 'Demo product — API unavailable',
+    sku: 'DEMO-004',
+    sellingPrice: 30.00,
+    purchasePrice: 22.00,
+    quantity: 15,
+  },
+  {
+    id: 'fallback-5',
+    name: 'Yoga Mat Premium',
+    category: 'Sports',
+    img: null,
+    supplierName: 'Sample Supplier',
+    description: 'Demo product — API unavailable',
+    sku: 'DEMO-005',
+    sellingPrice: 14.00,
+    purchasePrice: 10.00,
+    quantity: 85,
+  },
+  {
+    id: 'fallback-6',
+    name: 'Ceramic Coffee Mug Set',
+    category: 'Home & Kitchen',
+    img: null,
+    supplierName: 'Sample Supplier',
+    description: 'Demo product — API unavailable',
+    sku: 'DEMO-006',
+    sellingPrice: 9.00,
+    purchasePrice: 6.00,
+    quantity: 210,
+  },
+  {
+    id: 'fallback-7',
+    name: 'Leather Journal Notebook',
+    category: 'Office Supplies',
+    img: null,
+    supplierName: 'Sample Supplier',
+    description: 'Demo product — API unavailable',
+    sku: 'DEMO-007',
+    sellingPrice: 8.00,
+    purchasePrice: 5.50,
+    quantity: 12,
+  },
+  {
+    id: 'fallback-8',
+    name: 'Hydrating Face Serum',
+    category: 'Beauty',
+    img: null,
+    supplierName: 'Sample Supplier',
+    description: 'Demo product — API unavailable',
+    sku: 'DEMO-008',
+    sellingPrice: 20.00,
+    purchasePrice: 14.00,
+    quantity: 0,
+  },
+];
+
 export default function Products({ setActiveTab }) {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,6 +150,8 @@ export default function Products({ setActiveTab }) {
       }
     } catch (err) {
       setApiError(err.message || 'Failed to fetch products.');
+      // Fall back to static demo data so the page is never blank
+      setProducts(FALLBACK_PRODUCTS);
     } finally {
       setIsLoading(false);
     }
