@@ -7,31 +7,11 @@ import {
   ChevronDown,
   Edit2,
   Trash2,
-  X,
-  AlertCircle,
-  RefreshCw
+  X
 } from 'lucide-react';
 
-const API_URL = 'http://localhost:3000/api/v1/get';
-
-/** Map a raw API product record to the shape this component expects */
-const mapApiProduct = (item) => ({
-  id: item._id,
-  name: item.productName,
-  category: item.Category,
-  img: item.img || null,
-  supplierName: item.supplierName,
-  description: item.description,
-  sku: item.sku,
-  sellingPrice: item.sellingPrice,
-  purchasePrice: item.supplierCost,
-  quantity: item.qty,
-  createdAt: item.createdAt,
-  updatedAt: item.updatedAt,
-});
-
-/** Static fallback data — shown when the API is unreachable */
-const FALLBACK_PRODUCTS = [
+/** Static product data */
+const STATIC_PRODUCTS = [
   {
     id: 'fallback-1',
     name: 'Bluetooth Speaker Mini',
@@ -131,36 +111,12 @@ const FALLBACK_PRODUCTS = [
 ];
 
 export default function Products({ setActiveTab }) {
-  const [products, setProducts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [apiError, setApiError] = useState(null);
-
-  /** Fetch products from the backend API */
-  const fetchProducts = async () => {
-    setIsLoading(true);
-    setApiError(null);
-    try {
-      const res = await fetch(API_URL);
-      if (!res.ok) throw new Error(`Server responded with status ${res.status}`);
-      const json = await res.json();
-      if (json.success && Array.isArray(json.data)) {
-        setProducts(json.data.map(mapApiProduct));
-      } else {
-        throw new Error('Unexpected response format from server.');
-      }
-    } catch (err) {
-      setApiError(err.message || 'Failed to fetch products.');
-      // Fall back to static demo data so the page is never blank
-      setProducts(FALLBACK_PRODUCTS);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [products, setProducts] = useState(STATIC_PRODUCTS);
 
   useEffect(() => {
     if (setActiveTab) setActiveTab('products');
-    fetchProducts();
   }, [setActiveTab]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [selectedStatus, setSelectedStatus] = useState('All Statuses');
@@ -369,37 +325,6 @@ export default function Products({ setActiveTab }) {
   return (
     <div className="dashboard-page-container bg-[#F8FAFC] font-sans antialiased tracking-tight">
 
-      {/* API Error Banner */}
-      {apiError && (
-        <div className="mx-6 lg:mx-8 mb-4 flex items-center gap-3 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-xs font-semibold text-[#EF4444]">
-          <AlertCircle className="h-4 w-4 shrink-0" />
-          <span className="flex-1">{apiError}</span>
-          <button
-            onClick={fetchProducts}
-            className="flex items-center gap-1 px-3 py-1.5 bg-[#EF4444] text-white rounded-full text-[11px] font-bold hover:bg-red-600 transition"
-          >
-            <RefreshCw className="h-3 w-3" /> Retry
-          </button>
-        </div>
-      )}
-
-      {/* Loading Skeleton */}
-      {isLoading && (
-        <div className="mx-6 lg:mx-8 mb-4 bg-white border border-[#E2E8F0] rounded-2xl overflow-hidden">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-[#F1F5F9] last:border-0 animate-pulse">
-              <div className="w-9 h-9 rounded-xl bg-[#E2E8F0] shrink-0" />
-              <div className="flex-1 space-y-2">
-                <div className="h-3 bg-[#E2E8F0] rounded-full w-1/3" />
-                <div className="h-2.5 bg-[#F1F5F9] rounded-full w-1/5" />
-              </div>
-              <div className="h-3 bg-[#E2E8F0] rounded-full w-16" />
-              <div className="h-3 bg-[#E2E8F0] rounded-full w-10" />
-              <div className="h-5 bg-[#E2E8F0] rounded-full w-16" />
-            </div>
-          ))}
-        </div>
-      )}
 
       {/* Hidden natively mapped file upload anchor tag element context */}
       <input
