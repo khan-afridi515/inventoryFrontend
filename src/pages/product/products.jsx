@@ -1,121 +1,74 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { 
-  Search, 
-  Download, 
-  Upload, 
-  Plus, 
-  ChevronDown, 
-  Edit2, 
+import {
+  Search,
+  Download,
+  Upload,
+  Plus,
+  ChevronDown,
+  Edit2,
   Trash2,
-  X
+  X,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 
-const initialProducts = [
-  // 1. Electronics
-  {
-    id: 1,
-    name: "Bluetooth Speaker Mini",
-    category: "Electronics",
-    initials: "BS",
-    bgInitials: "bg-[#EBF3FF] text-[#2563EB]",
-    purchasePrice: 15.00,
-    quantity: 0, // Out of Stock
-  },
-  {
-    id: 2,
-    name: "Wireless Charging Pad",
-    category: "Electronics",
-    initials: "WP",
-    bgInitials: "bg-[#EBF3FF] text-[#2563EB]",
-    purchasePrice: 12.50,
-    quantity: 8, // Low Stock
-  },
-  // 2. Apparel
-  {
-    id: 3,
-    name: "Cotton Crew T-Shirt",
-    category: "Apparel",
-    initials: "CC",
-    bgInitials: "bg-[#F3E8FF] text-[#9333EA]",
-    purchasePrice: 4.20,
-    quantity: 320, // In Stock
-  },
-  {
-    id: 4,
-    name: "Denim Jacket",
-    category: "Apparel",
-    initials: "DJ",
-    bgInitials: "bg-[#F3E8FF] text-[#9333EA]",
-    purchasePrice: 22.00,
-    quantity: 15, // Low Stock
-  },
-  // 3. Sports
-  {
-    id: 5,
-    name: "Yoga Mat Premium",
-    category: "Sports",
-    initials: "YM",
-    bgInitials: "bg-[#E0F2FE] text-[#0369A1]",
-    purchasePrice: 10.00,
-    quantity: 85, // In Stock
-  },
-  // 4. Home & Kitchen
-  {
-    id: 6,
-    name: "Ceramic Coffee Mug Set",
-    category: "Home & Kitchen",
-    initials: "CC",
-    bgInitials: "bg-[#FEF3C7] text-[#D97706]",
-    purchasePrice: 6.00,
-    quantity: 210, // In Stock
-  },
-  // 5. Office Supplies
-  {
-    id: 7,
-    name: "Leather Journal Notebook",
-    category: "Office Supplies",
-    initials: "LN",
-    bgInitials: "bg-[#D1FAE5] text-[#065F46]",
-    purchasePrice: 5.50,
-    quantity: 12, // Low Stock
-  },
-  {
-    id: 8,
-    name: "Gel Pen Set (12 Pack)",
-    category: "Office Supplies",
-    initials: "GP",
-    bgInitials: "bg-[#D1FAE5] text-[#065F46]",
-    purchasePrice: 3.10,
-    quantity: 110, // In Stock
-  },
-  // 6. Beauty
-  {
-    id: 9,
-    name: "Hydrating Face Serum",
-    category: "Beauty",
-    initials: "FS",
-    bgInitials: "bg-[#FCE7F3] text-[#9D174D]",
-    purchasePrice: 14.00,
-    quantity: 0, // Out of Stock
-  }
-];
+const API_URL = 'http://localhost:3000/api/v1/get';
+
+/** Map a raw API product record to the shape this component expects */
+const mapApiProduct = (item) => ({
+  id: item._id,
+  name: item.productName,
+  category: item.Category,
+  img: item.img || null,
+  supplierName: item.supplierName,
+  description: item.description,
+  sku: item.sku,
+  sellingPrice: item.sellingPrice,
+  purchasePrice: item.supplierCost,
+  quantity: item.qty,
+  createdAt: item.createdAt,
+  updatedAt: item.updatedAt,
+});
 
 export default function Products({ setActiveTab }) {
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState(null);
+
+  /** Fetch products from the backend API */
+  const fetchProducts = async () => {
+    setIsLoading(true);
+    setApiError(null);
+    try {
+      const res = await fetch(API_URL);
+      if (!res.ok) throw new Error(`Server responded with status ${res.status}`);
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setProducts(json.data.map(mapApiProduct));
+      } else {
+        throw new Error('Unexpected response format from server.');
+      }
+    } catch (err) {
+      setApiError(err.message || 'Failed to fetch products.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (setActiveTab) setActiveTab('products');
+    fetchProducts();
   }, [setActiveTab]);
-
-  const [products, setProducts] = useState(initialProducts);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [selectedStatus, setSelectedStatus] = useState('All Statuses');
   const [selectedRows, setSelectedRows] = useState([]);
-  
+
   // Modals States
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  
+
   // State for Add Product Form
   const [newProduct, setNewProduct] = useState({
     name: '',
@@ -136,7 +89,7 @@ export default function Products({ setActiveTab }) {
 
   // Helper styling lookup context based on added Category 
   const getCategoryStyles = (category) => {
-    switch(category) {
+    switch (category) {
       case 'Electronics': return "bg-[#EBF3FF] text-[#2563EB]";
       case 'Apparel': return "bg-[#F3E8FF] text-[#9333EA]";
       case 'Sports': return "bg-[#E0F2FE] text-[#0369A1]";
@@ -155,7 +108,7 @@ export default function Products({ setActiveTab }) {
   // Handle Export Action (Generates clean standard CSV download layout)
   const handleExport = () => {
     if (filteredProducts.length === 0) return alert("No data available to export.");
-    
+
     const headers = ["Product Name", "Category", "Purchase Price ($)", "Quantity", "Status"];
     const rows = filteredProducts.map(p => [
       `"${p.name}"`,
@@ -165,9 +118,9 @@ export default function Products({ setActiveTab }) {
       `"${getStatus(p.quantity)}"`
     ]);
 
-    const csvContent = "data:text/csv;charset=utf-8," 
+    const csvContent = "data:text/csv;charset=utf-8,"
       + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
-    
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -190,7 +143,7 @@ export default function Products({ setActiveTab }) {
     reader.onload = (event) => {
       const text = event.target.result;
       const lines = text.split("\n").map(line => line.trim()).filter(line => line.length > 0);
-      
+
       // Skip top column layout headings row
       const importedItems = [];
       for (let i = 1; i < lines.length; i++) {
@@ -293,11 +246,17 @@ export default function Products({ setActiveTab }) {
     }
   };
 
+  /** Derive unique categories from API data for the filter dropdown */
+  const dynamicCategories = useMemo(() => {
+    const cats = new Set(products.map(p => p.category).filter(Boolean));
+    return ['All Categories', ...Array.from(cats).sort()];
+  }, [products]);
+
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'All Categories' || product.category === selectedCategory;
-      
+
       const currentStatus = getStatus(product.quantity);
       const matchesStatus = selectedStatus === 'All Statuses' || currentStatus === selectedStatus;
 
@@ -307,36 +266,68 @@ export default function Products({ setActiveTab }) {
 
   return (
     <div className="dashboard-page-container bg-[#F8FAFC] font-sans antialiased tracking-tight">
-      
+
+      {/* API Error Banner */}
+      {apiError && (
+        <div className="mx-6 lg:mx-8 mb-4 flex items-center gap-3 px-4 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-xl text-xs font-semibold text-[#EF4444]">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span className="flex-1">{apiError}</span>
+          <button
+            onClick={fetchProducts}
+            className="flex items-center gap-1 px-3 py-1.5 bg-[#EF4444] text-white rounded-full text-[11px] font-bold hover:bg-red-600 transition"
+          >
+            <RefreshCw className="h-3 w-3" /> Retry
+          </button>
+        </div>
+      )}
+
+      {/* Loading Skeleton */}
+      {isLoading && (
+        <div className="mx-6 lg:mx-8 mb-4 bg-white border border-[#E2E8F0] rounded-2xl overflow-hidden">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-[#F1F5F9] last:border-0 animate-pulse">
+              <div className="w-9 h-9 rounded-xl bg-[#E2E8F0] shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 bg-[#E2E8F0] rounded-full w-1/3" />
+                <div className="h-2.5 bg-[#F1F5F9] rounded-full w-1/5" />
+              </div>
+              <div className="h-3 bg-[#E2E8F0] rounded-full w-16" />
+              <div className="h-3 bg-[#E2E8F0] rounded-full w-10" />
+              <div className="h-5 bg-[#E2E8F0] rounded-full w-16" />
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Hidden natively mapped file upload anchor tag element context */}
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        onChange={handleFileUpload} 
-        accept=".csv" 
-        className="hidden" 
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileUpload}
+        accept=".csv"
+        className="hidden"
       />
 
       {/* Title and Action Row */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6  px-6 lg:px-8 pt-1 pb-5 -mt-2">
         <div>
-      <h1 className="text-3xl font-bold text-[#0F172A] tracking-tight -ml-2 sm:-ml-4">
-       Products </h1> 
-         <p className="text-xs text-[#64748B] mt-1 font-semibold -ml-2 sm:-ml-4 ">
-            {filteredProducts.length} products across {categoriesList.length - 1} categories
+          <h1 className="text-3xl font-bold text-[#0F172A] tracking-tight -ml-2 sm:-ml-4">
+            Products </h1>
+          <p className="text-xs text-[#64748B] mt-1 font-semibold -ml-2 sm:-ml-4 ">
+            {filteredProducts.length} products across {dynamicCategories.length - 1} categories
           </p>
         </div>
-        
+
         <div className="flex items-center gap-3  ">
-          <button 
+          <button
             onClick={handleImportClick}
             className="flex items-center gap-2 px-4 py-2 border border-[#E2E8F0] bg-white rounded-full text-xs font-bold text-[#334155] hover:bg-slate-50 transition"
           >
             <Upload className="h-3.5 w-3.5" />
             <span>Import</span>
           </button>
-          
-          <button 
+
+          <button
             onClick={handleExport}
             className="flex items-center gap-2 px-4 py-2 border border-[#E2E8F0] bg-white rounded-full text-xs font-bold text-[#334155] hover:bg-slate-50 transition"
           >
@@ -344,11 +335,11 @@ export default function Products({ setActiveTab }) {
             <span>Export</span>
           </button>
 
-          <button 
+          <button
             onClick={() => setIsAddModalOpen(true)}
             className="flex items-center gap-1 px-4.5 py-2.5 bg-[#2563EB] text-white rounded-full text-xs font-extrabold hover:bg-[#1D4ED8] transition shadow-sm"
           >
-<Plus className="h-3.5 w-3.5 stroke-3" />
+            <Plus className="h-3.5 w-3.5 stroke-3" />
             <span>Add Product</span>
           </button>
         </div>
@@ -356,13 +347,13 @@ export default function Products({ setActiveTab }) {
 
       {/* Filters and Table Container Card */}
       <div className="bg-white border border-[#E2E8F0] rounded-2xl shadow-sm overflow-hidden">
-        
+
         {/* Filters bar */}
         <div className="flex flex-col md:flex-row items-center gap-4 p-5 border-b border-[#F1F5F9] bg-white">
-<div className="relative w-full md:w-70">
+          <div className="relative w-full md:w-70">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#94A3B8]" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Search by name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -370,13 +361,13 @@ export default function Products({ setActiveTab }) {
             />
           </div>
 
-<div className="relative w-full md:w-50">
+          <div className="relative w-full md:w-50">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="w-full pl-4 pr-10 py-2.5 border border-[#E2E8F0] rounded-2xl text-[14px] font-semibold text-[#0F172A] bg-white appearance-none cursor-pointer focus:outline-none focus:border-[#3B82F6] transition-all hover:bg-slate-50"
             >
-              {categoriesList.map((cat, idx) => (
+              {dynamicCategories.map((cat, idx) => (
                 <option key={idx} value={cat} className="text-[#334155] py-2">
                   {cat}
                 </option>
@@ -385,7 +376,7 @@ export default function Products({ setActiveTab }) {
             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#0F172A] pointer-events-none stroke-[2.5]" />
           </div>
 
-<div className="relative w-full md:w-50">
+          <div className="relative w-full md:w-50">
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
@@ -405,8 +396,8 @@ export default function Products({ setActiveTab }) {
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="border-b border-[#F1F5F9] bg-[#FAFCFE] text-[11px] font-extrabold text-[#64748B] uppercase tracking-wider">
-<th className="py-3.5 px-5 w-12.5">
-                  <input 
+                <th className="py-3.5 px-5 w-12.5">
+                  <input
                     type="checkbox"
                     checked={filteredProducts.length > 0 && selectedRows.length === filteredProducts.length}
                     onChange={() => handleSelectAll(filteredProducts)}
@@ -417,20 +408,20 @@ export default function Products({ setActiveTab }) {
                 <th className="py-3.5 px-4 text-[#475569]">Purchase Price</th>
                 <th className="py-3.5 px-4 text-[#475569]">Quantity</th>
                 <th className="py-3.5 px-4 text-[#475569]">Status</th>
-<th className="py-3.5 px-5 text-center w-25 text-[#475569]">Actions</th>
+                <th className="py-3.5 px-5 text-center w-25 text-[#475569]">Actions</th>
               </tr>
             </thead>
-            
+
             <tbody className="divide-y divide-[#F1F5F9]">
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => {
                   const isChecked = selectedRows.includes(product.id);
                   const currentStatus = getStatus(product.quantity);
-                  
+
                   return (
                     <tr key={product.id} className="hover:bg-[#F8FAFC]/50 transition-colors">
                       <td className="py-3 px-5">
-                        <input 
+                        <input
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => handleSelectRow(product.id)}
@@ -439,8 +430,22 @@ export default function Products({ setActiveTab }) {
                       </td>
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${product.bgInitials}`}>
-                            {product.initials}
+                          {product.img ? (
+                            <img
+                              src={product.img}
+                              alt={product.name}
+                              className="w-9 h-9 rounded-xl object-cover shrink-0 border border-[#E2E8F0]"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextSibling.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div
+                            className={`w-9 h-9 rounded-xl items-center justify-center font-bold text-xs shrink-0 ${getCategoryStyles(product.category)}`}
+                            style={{ display: product.img ? 'none' : 'flex' }}
+                          >
+                            {getInitials(product.name)}
                           </div>
                           <div className="flex flex-col">
                             <span className="text-xs font-bold text-[#0F172A] leading-tight">{product.name}</span>
@@ -469,13 +474,13 @@ export default function Products({ setActiveTab }) {
                       </td>
                       <td className="py-3.5 px-5 text-center">
                         <div className="flex items-center justify-center gap-1.5">
-                          <button 
+                          <button
                             onClick={() => handleOpenEdit(product)}
                             className="p-1 text-[#64748B] hover:text-[#2563EB] hover:bg-slate-50 rounded transition"
                           >
                             <Edit2 className="h-3.5 w-3.5" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDelete(product.id)}
                             className="p-1 text-[#EF4444] hover:bg-[#FEF2F2] rounded transition"
                           >
@@ -508,12 +513,12 @@ export default function Products({ setActiveTab }) {
                 <X className="h-4.5 w-4.5" />
               </button>
             </div>
-            
+
             <form onSubmit={handleAddProduct} className="p-5 space-y-3.5">
               <div>
                 <label className="block text-[10px] font-bold text-[#475569] uppercase mb-1">Product Name</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   placeholder="e.g. Mechanical Keyboard"
                   value={newProduct.name}
                   onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
@@ -524,12 +529,12 @@ export default function Products({ setActiveTab }) {
 
               <div>
                 <label className="block text-[10px] font-bold text-[#475569] uppercase mb-1">Category Selection</label>
-                <select 
+                <select
                   value={newProduct.category}
                   onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
                   className="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-xs font-medium bg-white focus:outline-none focus:border-[#3B82F6] cursor-pointer"
                 >
-                  {categoriesList.filter(c => c !== 'All Categories').map((cat, idx) => (
+                  {dynamicCategories.filter(c => c !== 'All Categories').map((cat, idx) => (
                     <option key={idx} value={cat}>{cat}</option>
                   ))}
                 </select>
@@ -538,8 +543,8 @@ export default function Products({ setActiveTab }) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-bold text-[#475569] uppercase mb-1">Purchase Price ($)</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     step="0.01"
                     placeholder="0.00"
                     value={newProduct.purchasePrice}
@@ -550,8 +555,8 @@ export default function Products({ setActiveTab }) {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-[#475569] uppercase mb-1">Stock Quantity</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     placeholder="0"
                     value={newProduct.quantity}
                     onChange={(e) => setNewProduct({ ...newProduct, quantity: e.target.value })}
@@ -562,15 +567,15 @@ export default function Products({ setActiveTab }) {
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-[#F1F5F9] mt-4">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setIsAddModalOpen(false)}
                   className="px-4 py-2 border border-[#E2E8F0] rounded-full text-xs font-semibold text-[#334155] hover:bg-slate-50"
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="px-4 py-2 bg-[#2563EB] text-white rounded-full text-xs font-bold hover:bg-[#1D4ED8]"
                 >
                   Create Product
@@ -591,12 +596,12 @@ export default function Products({ setActiveTab }) {
                 <X className="h-4.5 w-4.5" />
               </button>
             </div>
-            
+
             <form onSubmit={handleSaveEdit} className="p-5 space-y-3.5">
               <div>
                 <label className="block text-[10px] font-bold text-[#475569] uppercase mb-1">Product Name</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={editingProduct.name}
                   onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
                   className="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-xs font-medium focus:outline-none focus:border-[#3B82F6]"
@@ -606,12 +611,12 @@ export default function Products({ setActiveTab }) {
 
               <div>
                 <label className="block text-[10px] font-bold text-[#475569] uppercase mb-1">Category</label>
-                <select 
+                <select
                   value={editingProduct.category}
                   onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
                   className="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-xs font-medium bg-white focus:outline-none focus:border-[#3B82F6]"
                 >
-                  {categoriesList.filter(c => c !== 'All Categories').map((cat, idx) => (
+                  {dynamicCategories.filter(c => c !== 'All Categories').map((cat, idx) => (
                     <option key={idx} value={cat}>{cat}</option>
                   ))}
                 </select>
@@ -620,8 +625,8 @@ export default function Products({ setActiveTab }) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-bold text-[#475569] uppercase mb-1">Purchase Price ($)</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     step="0.01"
                     value={editingProduct.purchasePrice}
                     onChange={(e) => setEditingProduct({ ...editingProduct, purchasePrice: e.target.value })}
@@ -631,8 +636,8 @@ export default function Products({ setActiveTab }) {
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-[#475569] uppercase mb-1">Quantity</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     value={editingProduct.quantity}
                     onChange={(e) => setEditingProduct({ ...editingProduct, quantity: e.target.value })}
                     className="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-xs font-medium focus:outline-none focus:border-[#3B82F6]"
@@ -642,15 +647,15 @@ export default function Products({ setActiveTab }) {
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-[#F1F5F9] mt-4">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setIsEditModalOpen(false)}
                   className="px-4 py-2 border border-[#E2E8F0] rounded-full text-xs font-semibold text-[#334155] hover:bg-slate-50"
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="px-4 py-2 bg-[#2563EB] text-white rounded-full text-xs font-bold hover:bg-[#1D4ED8]"
                 >
                   Save
