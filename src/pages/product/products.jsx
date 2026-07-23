@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import {
   Search,
   Download,
@@ -7,8 +7,12 @@ import {
   ChevronDown,
   Edit2,
   Trash2,
-  X
+  X,
+  RefreshCw,
+  WifiOff
 } from 'lucide-react';
+
+const API_URL = 'http://localhost:3000/api/v1/get';
 
 /** Static product data */
 const STATIC_PRODUCTS = [
@@ -110,12 +114,52 @@ const STATIC_PRODUCTS = [
   },
 ];
 
+/** Map a single API product record → internal component shape */
+const mapApiProduct = (p) => ({
+  id:            p._id,
+  name:          p.productName ?? 'Unnamed Product',
+  category:      p.Category   ?? 'Uncategorized',
+  img:           p.img        ?? null,
+  supplierName:  p.supplierName ?? '',
+  description:   p.description  ?? '',
+  sku:           p.sku          ?? '',
+  sellingPrice:  Number(p.sellingPrice)  || 0,
+  purchasePrice: Number(p.supplierCost)  || 0,
+  quantity:      Number(p.qty)           || 0,
+});
+
 export default function Products({ setActiveTab }) {
-  const [products, setProducts] = useState(STATIC_PRODUCTS);
+  const [products,   setProducts]   = useState(STATIC_PRODUCTS);
+  const [loading,    setLoading]    = useState(true);
+  const [apiError,   setApiError]   = useState(null);   // null = no error
+  const [isApiData,  setIsApiData]  = useState(false);  // true = live data shown
 
   useEffect(() => {
     if (setActiveTab) setActiveTab('products');
   }, [setActiveTab]);
+
+  /** Fetch products from the real API; fall back silently on any failure */
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    setApiError(null);
+    try {
+      const res = await fetch(API_URL);
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+      const json = await res.json();
+      const items = Array.isArray(json.data) ? json.data : [];
+      if (items.length === 0) throw new Error('Empty product list from API');
+      setProducts(items.map(mapApiProduct));
+      setIsApiData(true);
+    } catch (err) {
+      // Keep the static fallback data already in state
+      setApiError(err.message ?? 'Could not reach the server');
+      setIsApiData(false);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
@@ -322,6 +366,58 @@ export default function Products({ setActiveTab }) {
     });
   }, [products, searchTerm, selectedCategory, selectedStatus]);
 
+  /** ── Shimmer skeleton rows shown while loading ── */
+  if (loading) {
+    return (
+      <div className="dashboard-page-container bg-[#F8FAFC] font-sans antialiased tracking-tight">
+        {/* Header placeholder */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 px-6 lg:px-8 pt-1 pb-5 -mt-2">
+          <div>
+            <div className="h-8 w-32 bg-[#E2E8F0] rounded-lg animate-pulse" />
+            <div className="h-3.5 w-48 bg-[#E2E8F0] rounded mt-2 animate-pulse" />
+          </div>
+          <div className="h-9 w-32 bg-[#BFDBFE] rounded-full animate-pulse" />
+        </div>
+
+        {/* Table card placeholder */}
+        <div className="bg-white border border-[#E2E8F0] rounded-2xl shadow-sm overflow-hidden">
+          {/* Filters */}
+          <div className="flex flex-col md:flex-row items-center gap-4 p-5 border-b border-[#F1F5F9]">
+            <div className="h-9 w-full md:w-70 bg-[#F1F5F9] rounded-xl animate-pulse" />
+            <div className="h-9 w-full md:w-50 bg-[#F1F5F9] rounded-2xl animate-pulse" />
+            <div className="h-9 w-full md:w-50 bg-[#F1F5F9] rounded-2xl animate-pulse" />
+          </div>
+
+          {/* Loading indicator centred */}
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <div className="relative">
+              <div className="w-12 h-12 rounded-full border-4 border-[#DBEAFE] border-t-[#2563EB] animate-spin" />
+            </div>
+            <p className="text-xs font-semibold text-[#64748B]">Loading products…</p>
+          </div>
+
+          {/* Skeleton rows */}
+          <div className="divide-y divide-[#F1F5F9] px-5 pb-5">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4 py-3.5" style={{ animationDelay: `${i * 80}ms` }}>
+                <div className="h-3.5 w-3.5 bg-[#E2E8F0] rounded animate-pulse" />
+                <div className="w-9 h-9 rounded-xl bg-[#EFF6FF] animate-pulse shrink-0" />
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <div className="h-3 w-36 bg-[#E2E8F0] rounded animate-pulse" />
+                  <div className="h-2.5 w-20 bg-[#F1F5F9] rounded animate-pulse" />
+                </div>
+                <div className="h-3 w-16 bg-[#E2E8F0] rounded animate-pulse" />
+                <div className="h-3 w-10 bg-[#E2E8F0] rounded animate-pulse" />
+                <div className="h-5 w-16 bg-[#F1F5F9] rounded-full animate-pulse" />
+                <div className="h-6 w-14 bg-[#F1F5F9] rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard-page-container bg-[#F8FAFC] font-sans antialiased tracking-tight">
 
@@ -339,13 +435,38 @@ export default function Products({ setActiveTab }) {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6  px-6 lg:px-8 pt-1 pb-5 -mt-2">
         <div>
           <h1 className="text-3xl font-bold text-[#0F172A] tracking-tight -ml-2 sm:-ml-4">
-            Products </h1>
-          <p className="text-xs text-[#64748B] mt-1 font-semibold -ml-2 sm:-ml-4 ">
-            {filteredProducts.length} products across {dynamicCategories.length - 1} categories
-          </p>
+            Products
+          </h1>
+          <div className="flex items-center gap-2 mt-1 -ml-2 sm:-ml-4">
+            <p className="text-xs text-[#64748B] font-semibold">
+              {filteredProducts.length} products across {dynamicCategories.length - 1} categories
+            </p>
+            {/* Live / Offline badge */}
+            {isApiData ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#ECFDF5] text-[#10B981]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] inline-block animate-pulse" />
+                Live
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FFF7ED] text-[#D97706]">
+                <WifiOff className="w-2.5 h-2.5" />
+                Offline
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-3  ">
+        <div className="flex items-center gap-3">
+          {/* Refresh button */}
+          <button
+            onClick={fetchProducts}
+            title="Refresh from API"
+            className="flex items-center gap-1.5 px-4 py-2.5 border border-[#E2E8F0] bg-white rounded-full text-xs font-bold text-[#334155] hover:bg-slate-50 transition shadow-sm"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            <span>Refresh</span>
+          </button>
+
           {/* <button
             onClick={handleImportClick}
             className="flex items-center gap-2 px-4 py-2 border border-[#E2E8F0] bg-white rounded-full text-xs font-bold text-[#334155] hover:bg-slate-50 transition"
@@ -371,6 +492,17 @@ export default function Products({ setActiveTab }) {
           </button>
         </div>
       </div>
+
+      {/* API error banner (shown when we fell back to static data) */}
+      {apiError && (
+        <div className="flex items-center gap-3 mx-6 lg:mx-8 mb-4 px-4 py-3 rounded-xl bg-[#FFF7ED] border border-[#FDE68A] text-xs font-semibold text-[#92400E]">
+          <WifiOff className="h-4 w-4 text-[#D97706] shrink-0" />
+          <span>
+            <strong>Couldn't reach the server</strong> — showing cached demo data.
+            &nbsp;({apiError})
+          </span>
+        </div>
+      )}
 
       {/* Filters and Table Container Card */}
       <div className="bg-white border border-[#E2E8F0] rounded-2xl shadow-sm overflow-hidden">
