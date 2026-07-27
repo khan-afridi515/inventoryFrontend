@@ -5,7 +5,8 @@ import { sanitizeText } from '../../utils/sanitize';
 /**
  * @param {{ table: { date: string, rows: Array<object>, overallProfitLoss: number } }} props
  */
-export function SalesTable({ table }) {
+export function SalesTable({ table, period = 'daily' }) {
+  const periodLabel = period.charAt(0).toUpperCase() + period.slice(1);
   return (
     <Panel title={`Sales for ${table.date}`}>
       {/* Horizontal scroll on narrow screens so the 4 columns never
@@ -39,7 +40,7 @@ export function SalesTable({ table }) {
       </div>
 
       <div className="mt-4 -mx-4 -mb-4 flex flex-col gap-1 rounded-b-md bg-primary-light px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
-        <span className="text-sm font-semibold text-text">Overall Daily Profit / Loss</span>
+        <span className="text-sm font-semibold text-text">Overall {periodLabel} Profit / Loss</span>
         <span className="text-xl font-bold text-positive">
           {formatCurrency(table.overallProfitLoss)}
         </span>

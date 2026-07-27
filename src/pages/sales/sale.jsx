@@ -1,4 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
+import { ebayAuth } from '../../context/ebayContext';
+import { dummyData } from '../../data/dummyData';
 import {
   Search,
   Download,
@@ -10,50 +12,61 @@ import {
   ChevronDown
 } from 'lucide-react';
 
-const initialSales = [
-  {
-    id: 1,
-    product: "Wireless Mouse MX2",
-    qtySold: 6,
-    unitPurchase: 8.50,
-    unitSelling: 19.99,
-    date: "2026-07-15"
-  },
-  {
-    id: 2,
-    product: "Cotton Crew T-Shirt",
-    qtySold: 14,
-    unitPurchase: 4.20,
-    unitSelling: 12.99,
-    date: "2026-07-15"
-  },
-  {
-    id: 3,
-    product: "Ceramic Coffee Mug Set",
-    qtySold: 9,
-    unitPurchase: 6.00,
-    unitSelling: 16.99,
-    date: "2026-07-15"
-  },
-  {
-    id: 4,
-    product: "Yoga Mat Premium",
-    qtySold: 5,
-    unitPurchase: 9.50,
-    unitSelling: 24.99,
-    date: "2026-07-15"
-  }
-];
+// const initialSales = [
+//   {
+//     id: 1,
+//     product: "Wireless Mouse MX2",
+//     qtySold: 6,
+//     unitPurchase: 8.50,
+//     unitSelling: 19.99,
+//     date: "2026-07-15"
+//   },
+//   {
+//     id: 2,
+//     product: "Cotton Crew T-Shirt",
+//     qtySold: 14,
+//     unitPurchase: 4.20,
+//     unitSelling: 12.99,
+//     date: "2026-07-15"
+//   },
+//   {
+//     id: 3,
+//     product: "Ceramic Coffee Mug Set",
+//     qtySold: 9,
+//     unitPurchase: 6.00,
+//     unitSelling: 16.99,
+//     date: "2026-07-15"
+//   },
+//   {
+//     id: 4,
+//     product: "Yoga Mat Premium",
+//     qtySold: 5,
+//     unitPurchase: 9.50,
+//     unitSelling: 24.99,
+//     date: "2026-07-15"
+//   }
+// ];
 
 export default function Sales({ setActiveTab }) {
   useEffect(() => {
     if (setActiveTab) setActiveTab('sales');
   }, [setActiveTab]);
 
-  const [salesData] = useState(initialSales);
+  const [salesData] = useState(dummyData);
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [sortByDate, setSortByDate] = useState('desc');
+  const [ebayOrdersData, setEbayOrdersData] = useState(null);
+  const [localEbayError, setLocalEbayError] = useState(null);
+  const [localEbayMessage, setLocalEbayMessage] = useState('');
+
+  const { getEbayOrders, ebayLoading, ebayError, ebayMessage } = ebayAuth();
+
+  const dataSource = Array.isArray(ebayOrdersData)
+    ? ebayOrdersData
+    : Array.isArray(ebayOrdersData?.orders)
+      ? ebayOrdersData.orders
+      : salesData;
 
   const calculateTotalCost = (qty, purchase) => qty * purchase;
   const calculateTotalRevenue = (qty, selling) => qty * selling;
@@ -61,7 +74,7 @@ export default function Sales({ setActiveTab }) {
 
   // Filter and sort sales list
   const filteredSales = useMemo(() => {
-    let result = salesData.filter(item =>
+    let result = dataSource.filter(item =>
       item.product.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -76,19 +89,18 @@ export default function Sales({ setActiveTab }) {
 
   // Dynamic KPI Metric Totals
   const metrics = useMemo(() => {
-    const isFiltered = searchTerm !== '';
     const totalSalesQty = filteredSales.reduce((acc, curr) => acc + curr.qtySold, 0);
     const totalRevenue = filteredSales.reduce((acc, curr) => acc + calculateTotalRevenue(curr.qtySold, curr.unitSelling), 0);
     const totalCost = filteredSales.reduce((acc, curr) => acc + calculateTotalCost(curr.qtySold, curr.unitPurchase), 0);
     const netProfit = totalRevenue - totalCost;
 
     return {
-      totalSales: isFiltered ? totalSalesQty : 309,
-      revenue: isFiltered ? totalRevenue : 7088.91,
-      profit: isFiltered ? netProfit : 4373.71,
-      loss: 0.00
+      totalSales: totalSalesQty,
+      revenue: totalRevenue,
+      profit: Math.max(netProfit, 0),
+      loss: Math.max(-netProfit, 0),
     };
-  }, [filteredSales, searchTerm]);
+  }, [filteredSales]);
 
   // Functional CSV Export
   const handleExport = () => {
@@ -121,6 +133,27 @@ export default function Sales({ setActiveTab }) {
     document.body.removeChild(link);
   };
 
+  const handleFetchEbayOrders = async () => {
+    setLocalEbayError(null);
+    setLocalEbayMessage('');
+
+    try {
+      const response = await getEbayOrders();
+      setEbayOrdersData(response?.data || response);
+      setLocalEbayMessage(response?.message || 'eBay orders loaded successfully.');
+    } catch (error) {
+      setLocalEbayError(error.message || 'Failed to fetch eBay orders.');
+    }
+  };
+
+  useEffect(() => {
+    const fetchOrdersOnMount = async () => {
+      await handleFetchEbayOrders();
+    };
+
+    fetchOrdersOnMount();
+  }, [getEbayOrders]);
+
   return (
     <div className="dashboard-page-container font-outfit p-6  px-6 lg:px-8 pt-1 pb-5 -mt-2" >
 
@@ -133,14 +166,31 @@ export default function Sales({ setActiveTab }) {
           </p>
         </div>
 
-        {/* <button
-          onClick={handleExport}
-          className="inline-flex items-center gap-2 px-4 py-2 border border-[#E2E8F0] bg-white rounded-xl text-[14px] font-normal text-[#0F172A] hover:bg-[#F8FAFC] transition shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
-        >
-          <Download className="h-4 w-4 stroke-[1.5]" />
-          <span>Export</span>
-        </button> */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <button
+            onClick={handleExport}
+            className="inline-flex items-center gap-2 px-4 py-2 border border-[#E2E8F0] bg-white rounded-xl text-[14px] font-normal text-[#0F172A] hover:bg-[#F8FAFC] transition shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+          >
+            <Download className="h-4 w-4 stroke-[1.5]" />
+            <span>Export</span>
+          </button>
+        </div>
       </div>
+
+      {(localEbayMessage || localEbayError || ebayError || ebayMessage) && (
+        <div className="mb-6 rounded-2xl border border-[#E2E8F0] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          {localEbayError || ebayError ? (
+            <p className="text-sm font-medium text-[#EF4444]">{localEbayError || ebayError}</p>
+          ) : (
+            <p className="text-sm font-medium text-[#16A34A]">{localEbayMessage || ebayMessage}</p>
+          )}
+          {ebayOrdersData && (
+            <pre className="mt-3 max-h-40 overflow-auto text-xs text-[#334155] bg-[#F8FAFC] rounded-lg p-3">
+              {JSON.stringify(ebayOrdersData, null, 2)}
+            </pre>
+          )}
+        </div>
+      )}
 
       {/* KPI Cards Row - Fixed Overflow & Preserved w-60 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

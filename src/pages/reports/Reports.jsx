@@ -4,11 +4,14 @@ import { ReportsHeader } from '../../component/reports/ReportsHeader';
 import { ReportTabs } from '../../component/reports/ReportTabs';
 import { ReportStatsGrid } from '../../component/reports/ReportStatsGrid';
 import { DateFilter } from '../../component/reports/DateFilter';
+import MonthSelector from '../../component/reports/MonthSelector';
 import { SalesChart } from '../../component/reports/SalesChart';
 import { ProfitChart } from '../../component/reports/ProfitChart';
 import { SalesTable } from '../../component/reports/SalesTable';
 import { useReportsData } from '../../hooks/useReportsData';
 import { REPORT_PERIODS } from '../../constants/reports.constants';
+
+
 
 function ReportsSkeleton() {
   return <div className="p-6 text-muted">Loading report…</div>;
@@ -38,7 +41,7 @@ function handleReportAction(actionId) {
 
 function Reports() {
   const [period, setPeriod] = useState(REPORT_PERIODS.DAILY);
-  const [date, setDate] = useState('2026-07-15');
+  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const { data, loading, error, refetch } = useReportsData(period, date);
 
   return (
@@ -54,14 +57,18 @@ function Reports() {
         {!loading && !error && (
           <>
             <ReportStatsGrid summary={data.summary} />
-            <DateFilter value={date} onChange={setDate} />
+            {period === REPORT_PERIODS.MONTHLY ? (
+              <MonthSelector value={date} onChange={setDate} />
+            ) : (
+              <DateFilter value={date} onChange={setDate} />
+            )}
 
             <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <SalesChart data={data.salesChart} />
-              <ProfitChart data={data.profitChart} />
+              <SalesChart data={data.salesChart} period={period} />
+              <ProfitChart data={data.profitChart} period={period} />
             </div>
 
-            <SalesTable table={data.salesTable} />
+            <SalesTable table={data.salesTable} period={period} />
           </>
         )}
       </div>

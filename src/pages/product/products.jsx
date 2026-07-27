@@ -11,8 +11,17 @@ import {
   RefreshCw,
   WifiOff
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
 
 const API_URL = 'http://localhost:3000/api/v1/get';
+
+const getApiItems = (json) => {
+  if (Array.isArray(json.data)) return json.data;
+  if (Array.isArray(json.products)) return json.products;
+  if (Array.isArray(json)) return json;
+  return [];
+};
 
 /** Static product data */
 const STATIC_PRODUCTS = [
@@ -116,23 +125,26 @@ const STATIC_PRODUCTS = [
 
 /** Map a single API product record → internal component shape */
 const mapApiProduct = (p) => ({
-  id:            p._id,
-  name:          p.productName ?? 'Unnamed Product',
-  category:      p.Category   ?? 'Uncategorized',
-  img:           p.img        ?? null,
-  supplierName:  p.supplierName ?? '',
-  description:   p.description  ?? '',
-  sku:           p.sku          ?? '',
-  sellingPrice:  Number(p.sellingPrice)  || 0,
-  purchasePrice: Number(p.supplierCost)  || 0,
-  quantity:      Number(p.qty)           || 0,
+  id: p._id,
+  name: p.productName ?? 'Unnamed Product',
+  category: p.Category ?? 'Uncategorized',
+  img: p.img ?? null,
+  supplierName: p.supplierName ?? '',
+  description: p.description ?? '',
+  sku: p.sku ?? '',
+  sellingPrice: Number(p.sellingPrice) || 0,
+  purchasePrice: Number(p.supplierCost) || 0,
+  quantity: Number(p.qty) || 0,
 });
 
 export default function Products({ setActiveTab }) {
-  const [products,   setProducts]   = useState(STATIC_PRODUCTS);
-  const [loading,    setLoading]    = useState(true);
-  const [apiError,   setApiError]   = useState(null);   // null = no error
-  const [isApiData,  setIsApiData]  = useState(false);  // true = live data shown
+
+  const navigate = useNavigate();
+
+  const [products, setProducts] = useState(STATIC_PRODUCTS);
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState(null);   // null = no error
+  const [isApiData, setIsApiData] = useState(false);  // true = live data shown
 
   useEffect(() => {
     if (setActiveTab) setActiveTab('products');
@@ -146,7 +158,7 @@ export default function Products({ setActiveTab }) {
       const res = await fetch(API_URL);
       if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const json = await res.json();
-      const items = Array.isArray(json.data) ? json.data : [];
+      const items = getApiItems(json);
       if (items.length === 0) throw new Error('Empty product list from API');
       setProducts(items.map(mapApiProduct));
       setIsApiData(true);
@@ -302,10 +314,25 @@ export default function Products({ setActiveTab }) {
     setNewProduct({ name: '', category: 'Electronics', purchasePrice: '', quantity: '' });
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      setProducts(products.filter(product => product.id !== id));
-      setSelectedRows(selectedRows.filter(rowId => rowId !== id));
+  const handleDelete = async (id) => {
+    const url = `http://localhost:3000/api/v1/delete/${id}`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(data);
+      setProducts((prevProducts) => prevProducts.filter((product) => product.id !== id));
+      alert('Product deleted successfully.');
+    } catch (error) {
+      console.error('Delete Error:', error);
+      alert('Could not delete product. Please try again.');
     }
   };
 
@@ -484,7 +511,7 @@ export default function Products({ setActiveTab }) {
           </button> */}
 
           <button
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={() => navigate('/add-product')}
             className="flex items-center gap-1 px-4.5 py-2.5 bg-[#2563EB] text-white rounded-full text-xs font-extrabold hover:bg-[#1D4ED8] transition shadow-sm"
           >
             <Plus className="h-3.5 w-3.5 stroke-3" />
@@ -555,14 +582,14 @@ export default function Products({ setActiveTab }) {
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="border-b border-[#F1F5F9] bg-[#FAFCFE] text-[11px] font-extrabold text-[#64748B] uppercase tracking-wider">
-                <th className="py-3.5 px-5 w-12.5">
+                {/* <th className="py-3.5 px-5 w-12.5">
                   <input
                     type="checkbox"
                     checked={filteredProducts.length > 0 && selectedRows.length === filteredProducts.length}
                     onChange={() => handleSelectAll(filteredProducts)}
                     className="rounded border-[#CBD5E1] text-[#2563EB] focus:ring-[#2563EB] h-3.5 w-3.5 cursor-pointer"
-                  />
-                </th>
+                  /> 
+                </th> */}
                 <th className="py-3.5 px-4 text-[#475569]">Product</th>
                 <th className="py-3.5 px-4 text-[#475569]">Purchase Price</th>
                 <th className="py-3.5 px-4 text-[#475569]">Quantity</th>
@@ -579,14 +606,14 @@ export default function Products({ setActiveTab }) {
 
                   return (
                     <tr key={product.id} className="hover:bg-[#F8FAFC]/50 transition-colors">
-                      <td className="py-3 px-5">
+                      {/* <td className="py-3 px-5">
                         <input
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => handleSelectRow(product.id)}
                           className="rounded border-[#CBD5E1] text-[#2563EB] focus:ring-[#2563EB] h-3.5 w-3.5 cursor-pointer"
                         />
-                      </td>
+                      </td> */}
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
                           {product.img ? (
@@ -634,7 +661,11 @@ export default function Products({ setActiveTab }) {
                       <td className="py-3.5 px-5 text-center">
                         <div className="flex items-center justify-center gap-1.5">
                           <button
-                            onClick={() => handleOpenEdit(product)}
+                            onClick={() => {
+                              console.log('product id', product.id);
+                              console.log('product', product);
+                              navigate(`/update-product/${product.id}`);
+                            }}
                             className="p-1 text-[#64748B] hover:text-[#2563EB] hover:bg-slate-50 rounded transition"
                           >
                             <Edit2 className="h-3.5 w-3.5" />

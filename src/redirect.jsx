@@ -1,24 +1,31 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ebayAuth } from "./context/ebayContext";
 
 const Redirect = () => {
     const navigate = useNavigate();
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
+    const {getebayToken, ebayError, ebayLoading, ebayMessage} = ebayAuth();
+    
 
     const exchangeCodeForToken = async (authorizationCode) => {
         try {
             console.log('eBay authorization code received:', authorizationCode);
-            // TODO: send `authorizationCode` to your backend for token exchange.
-            setLoading(false);
+            await getebayToken(authorizationCode);
             navigate('/');
         } catch (exchangeError) {
             console.error('Token exchange failed:', exchangeError);
             setError('Failed to complete eBay authorization.');
+        } finally {
             setLoading(false);
         }
     };
+
+    // useEffect(()=>{
+    //     getebayToken("v^1.1#i^1#p^3#f^0#r^1#I^3#t^Ul41XzA6MjY0MzQ4NkY0NDI4M0FFQjcxMEJEOTMxOUQ4QTVBM0VfMV8xI0VeMTI4NA==")
+    // }, [])
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
