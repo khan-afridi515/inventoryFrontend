@@ -60,6 +60,9 @@ function Dashboard({ setActiveTab }) {
 
     sessionStorage.setItem('ebay_state', state);
 
+    console.log("Generated state:", state);
+    console.log("Stored state:", sessionStorage.getItem("ebay_state"));
+
     const url =
       `https://auth.sandbox.ebay.com/oauth2/authorize` +
       `?client_id=${clientId}` +
@@ -69,7 +72,9 @@ function Dashboard({ setActiveTab }) {
       `&state=${state}`;
 
     window.location.href = url;
+    console.log("Before redirect:", window.location.origin);
   }
+  console.log("Before redirect:", window.location.origin);
 
   // Return a single wrapper to ensure layout alignment is always preserved
   return (

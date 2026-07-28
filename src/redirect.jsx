@@ -52,12 +52,17 @@ const Redirect = () => {
 
         console.log("state", state);
         console.log("storedState", storedState);
+        console.log("Returned state:", state);
+        console.log("Stored state:", storedState);
+        console.log("Equal?", state === storedState);
         if (!state || state !== storedState) {
             console.error('State mismatch - possible CSRF attack');
             setError('Invalid state: Possible security issue');
             setLoading(false);
             return;
         }
+
+        console.log("Callback origin:", window.location.origin);
 
         // Clear stored state after validation
         sessionStorage.removeItem('ebay_state');
@@ -70,6 +75,8 @@ const Redirect = () => {
             setLoading(false);
         }
     }, [navigate]);
+
+    console.log("Callback origin:", window.location.origin);
 
 
 
