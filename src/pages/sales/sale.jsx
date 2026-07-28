@@ -24,10 +24,19 @@ export default function Sales({ setActiveTab }) {
 
   const { getEbayOrders, ebayError, ebayMessage } = ebayAuth();
 
+<<<<<<< HEAD
 
 
 
   const dataSource = salesData;
+=======
+  // Normalize Data Source (handles both raw arrays and nested API responses)
+  const dataSource = useMemo(() => {
+    if (Array.isArray(ebayOrdersData)) return ebayOrdersData;
+    if (Array.isArray(ebayOrdersData?.orders)) return ebayOrdersData.orders;
+    return salesData;
+  }, [ebayOrdersData, salesData]);
+>>>>>>> d364c70f49dd4d94adccaa9bdac74ee5e2e3e775
 
   // Safe Math Helpers (Guards against undefined/NaN values)
   const calculateTotalCost = (qty = 0, purchase = 0) => Number(qty) * Number(purchase);
@@ -101,9 +110,41 @@ export default function Sales({ setActiveTab }) {
     document.body.removeChild(link);
   };
 
+<<<<<<< HEAD
   useEffect(() => {
     getEbayOrders();
   }, []);
+=======
+  // Fetch eBay orders on mount
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchOrders = async () => {
+      setLocalEbayError(null);
+      setLocalEbayMessage('');
+
+      try {
+        if (typeof getEbayOrders === 'function') {
+          const response = await getEbayOrders();
+          if (isMounted) {
+            setEbayOrdersData(response?.data || response);
+            setLocalEbayMessage(response?.message || 'eBay orders loaded successfully.');
+          }
+        }
+      } catch (error) {
+        if (isMounted) {
+          setLocalEbayError(error.message || 'Failed to fetch eBay orders.');
+        }
+      }
+    };
+
+    fetchOrders();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Run once on component mount
+>>>>>>> d364c70f49dd4d94adccaa9bdac74ee5e2e3e775
 
   return (
     <div className="dashboard-page-container font-outfit p-6 px-6 lg:px-8 pt-1 pb-5 -mt-2">
@@ -128,15 +169,30 @@ export default function Sales({ setActiveTab }) {
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* {(ebayError || ebayMessage) && (
         <div className="mb-6 rounded-2xl border border-[#E2E8F0] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           {ebayError ? (
             <p className="text-sm font-medium text-[#EF4444]">{ebayError}</p>
           ) : (
             <p className="text-sm font-medium text-[#16A34A]">{ebayMessage}</p>
+=======
+      {/* API Status Messages */}
+      {(localEbayMessage || localEbayError || ebayError || ebayMessage) && (
+        <div className="mb-6 rounded-2xl border border-border bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          {localEbayError || ebayError ? (
+            <p className="text-sm font-medium text-negative">{localEbayError || ebayError}</p>
+          ) : (
+            <p className="text-sm font-medium text-[#16A34A]">{localEbayMessage || ebayMessage}</p>
+          )}
+          {ebayOrdersData && (
+            <pre className="mt-3 max-h-40 overflow-auto text-xs text-[#334155] bg-bgd-lg p-3 rounded-xl">
+              {JSON.stringify(ebayOrdersData, null, 2)}
+            </pre>
+>>>>>>> d364c70f49dd4d94adccaa9bdac74ee5e2e3e775
           )}
         </div>
-      )} */}
+      )} 
 
       {/* KPI Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -264,19 +320,36 @@ export default function Sales({ setActiveTab }) {
             <tbody className="divide-y divide-[#F1F5F9] text-[14px]">
               {filteredSales.length > 0 ? (
                 filteredSales.map((item, index) => {
+<<<<<<< HEAD
                   const totalCost = calculateTotalCost(item.qtySold, item.unitPurchase);
                   const totalRevenue = calculateTotalRevenue(item.qtySold, item.unitSelling);
+=======
+                  const qty = Number(item.qtySold) || 0;
+                  const purchase = Number(item.unitPurchase) || 0;
+                  const selling = Number(item.unitSelling) || 0;
+
+                  const totalCost = calculateTotalCost(qty, purchase);
+                  const totalRevenue = calculateTotalRevenue(qty, selling);
+>>>>>>> d364c70f49dd4d94adccaa9bdac74ee5e2e3e775
                   const profitLoss = calculateProfitLoss(totalRevenue, totalCost);
                   const isProfit = profitLoss >= 0;
                   // Use item.id if available, otherwise fallback to product+date+index combination
                   const uniqueKey = item.id || `${item.product}-${item.date}-${index}`;
 
                   return (
+<<<<<<< HEAD
                     <tr key={uniqueKey} className="hover:bg-[#F8FAFC]/50 transition-colors">
                       <td className="py-4 px-5 font-normal text-[#0F172A]">{item.product}</td>
                       <td className="py-4 px-5 text-right font-normal text-[#334155]">{item.qtySold}</td>
                       <td className="py-4 px-5 text-right font-normal text-[#64748B]">${item.unitPurchase.toFixed(2)}</td>
                       <td className="py-4 px-5 text-right font-normal text-[#64748B]">${item.unitSelling.toFixed(2)}</td>
+=======
+                    <tr key={item.id || index} className="hover:bg-bg/50 transition-colors">
+                      <td className="py-4 px-5 font-normal text-text">{item.product || item.title || 'N/A'}</td>
+                      <td className="py-4 px-5 text-right font-normal text-[#334155]">{qty}</td>
+                      <td className="py-4 px-5 text-right font-normal text-muted">${purchase.toFixed(2)}</td>
+                      <td className="py-4 px-5 text-right font-normal text-muted">${selling.toFixed(2)}</td>
+>>>>>>> d364c70f49dd4d94adccaa9bdac74ee5e2e3e775
                       <td className="py-4 px-5 text-right font-normal text-[#334155]">${totalCost.toFixed(2)}</td>
                       <td className="py-4 px-5 text-right font-normal text-[#334155]">${totalRevenue.toFixed(2)}</td>
                       <td className={`py-4 px-5 text-right font-normal ${isProfit ? 'text-positive' : 'text-negative'}`}>
