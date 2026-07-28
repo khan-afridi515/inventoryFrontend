@@ -7,8 +7,8 @@ const Redirect = () => {
     const navigate = useNavigate();
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
-    const {getebayToken, ebayError, ebayLoading, ebayMessage} = ebayAuth();
-    
+    const { getebayToken, ebayError, ebayLoading, ebayMessage } = ebayAuth();
+
 
     const exchangeCodeForToken = async (authorizationCode) => {
         try {
@@ -34,7 +34,10 @@ const Redirect = () => {
         const errorParam = params.get('error');
         const errorDescription = params.get('error_description');
 
+
+
         console.log("Code and state", code, state);
+
 
         // Handle authorization errors from eBay
         if (errorParam) {
@@ -46,6 +49,9 @@ const Redirect = () => {
 
         // Validate state token to prevent CSRF attacks
         const storedState = sessionStorage.getItem('ebay_state');
+
+        console.log("state", state);
+        console.log("storedState", storedState);
         if (!state || state !== storedState) {
             console.error('State mismatch - possible CSRF attack');
             setError('Invalid state: Possible security issue');
@@ -65,7 +71,7 @@ const Redirect = () => {
         }
     }, [navigate]);
 
- 
+
 
     if (error) {
         return (
