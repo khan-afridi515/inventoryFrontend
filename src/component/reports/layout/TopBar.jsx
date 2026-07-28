@@ -30,7 +30,7 @@ export function TopBar({ breadcrumb, notificationCount = 0, userInitials = '', o
 
       <div className="flex items-center gap-4">
         <div className="relative hidden sm:block">
-          <Search size={15} className="pointer-events-none absolute inset-y-0 left-3 my-auto text-muted" />
+          <Search size={15} className="pointer-events-none absolute inset-y-0 left-3 my-auto text-muted " />
           <input
             type="search"
             placeholder="Search products, SKUs, orders"

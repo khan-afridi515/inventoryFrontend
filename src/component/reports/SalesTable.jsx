@@ -12,7 +12,7 @@ export function SalesTable({ table, period = 'daily' }) {
       {/* Horizontal scroll on narrow screens so the 4 columns never
           get crushed or wrap awkwardly on mobile. */}
       <div className="-mx-4 overflow-x-auto px-4">
-        <table className="w-full min-w-[480px] border-collapse text-sm">
+        <table className="w-full min-w-120 border-collapse text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs font-semibold text-muted">
               <th className="py-2 pr-4 font-semibold">Product</th>

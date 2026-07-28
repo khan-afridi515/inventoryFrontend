@@ -13,7 +13,7 @@ import { RecentActivityFeed } from '../../component/dashboard/activity/RecentAct
 // Removed internal padding here so it inherits perfectly from the parent wrapper
 function DashboardSkeleton() {
   return (
-    <div className="text-[#64748B] font-outfit">
+    <div className="text-muted font-outfit">
       Loading dashboard…
     </div>
   );
@@ -23,12 +23,12 @@ function DashboardSkeleton() {
 function DashboardError({ message, onRetry }) {
   return (
     <div className="font-outfit">
-      <p className="font-semibold text-[#EF4444]">
+      <p className="font-semibold text-negative">
         Couldn't load the dashboard: {message}
       </p>
       <button
         onClick={onRetry}
-        className="mt-3 px-4 py-2 bg-[#3B82F6] text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition"
+        className="mt-3 px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition"
       >
         Retry
       </button>
