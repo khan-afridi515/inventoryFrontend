@@ -19,6 +19,8 @@ export function useProductForm(onSave) {
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
   const [imageError, setImageError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const objectUrlRef = useRef(null);
 
   const setField = useCallback((field, value) => {
@@ -62,6 +64,9 @@ export function useProductForm(onSave) {
       setErrors(validationErrors);
       if (Object.keys(validationErrors).length > 0) return;
 
+      setSubmitError(null);
+      setSuccessMessage(null);
+
       // Sanitize free-text fields at the form boundary, before they
       // ever reach a request payload or get rendered elsewhere.
       const payload = {
@@ -72,14 +77,17 @@ export function useProductForm(onSave) {
         purchasePrice: Number(formData.purchasePrice),
         sellingPrice: Number(formData.sellingPrice),
         currentQuantity: Number(formData.currentQuantity),
-        minimumStock: Number(formData.minimumStock),
+   
         image: imageFile,
       };
 
       setIsSubmitting(true);
       try {
         await onSave?.(payload);
+        setSuccessMessage('Product added successfully.');
         resetForm();
+      } catch (err) {
+        setSubmitError(err?.message ?? 'Could not save the product.');
       } finally {
         setIsSubmitting(false);
       }
@@ -93,6 +101,8 @@ export function useProductForm(onSave) {
     imagePreviewUrl,
     imageError,
     isSubmitting,
+    submitError,
+    successMessage,
     setField,
     handleImageChange,
     handleSubmit,

@@ -64,17 +64,8 @@
 
     .page-content,
     .dashboard-page-container {
-        /* 
-           ======================================================================
-           👇 MAKE MANUAL PADDING CHANGES HERE TO MATCH YOUR FIGMA DESIGN 👇
-           ======================================================================
-           • px-4     = 16px padding on mobile (< 768px) so it never touches screen edges
-           • md:pl-6  = Distance from the sidebar on medium/desktop screens (768px+)
-           • md:pr-6  = Distance from the right screen edge on medium/desktop screens
-           
-           Quick Reference:
-           - 16px = md:pl-4 | 20px = md:pl-5 | 24px = md:pl-6 | 32px = md:pl-8
-        */
+       
+         
         @apply w-full pt-4 px-4 pb-6 md:pl-2.5 md:pr-2.5 antialiased tracking-tight;
     }
 }

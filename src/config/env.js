@@ -16,6 +16,7 @@ export const config = {
   apiBaseUrl: required('VITE_API_BASE_URL', '/api'),
   useMockData: (import.meta.env.VITE_USE_MOCK_DATA ?? 'true') === 'true',
   clientId: required('VITE_CLIENT_ID'),
+  ruName: required('VITE_RU_NAME'),
   redirectUri: import.meta.env.VITE_EBAY_REDIRECT_URI ?? `${window.location.origin}/auth/ebay/callback`,
   env: import.meta.env.MODE,
 };

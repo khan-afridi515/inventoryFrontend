@@ -13,7 +13,7 @@ import { RecentActivityFeed } from '../../component/dashboard/activity/RecentAct
 // Removed internal padding here so it inherits perfectly from the parent wrapper
 function DashboardSkeleton() {
   return (
-    <div className="text-[#64748B] font-outfit">
+    <div className="text-muted font-outfit">
       Loading dashboard…
     </div>
   );
@@ -23,12 +23,12 @@ function DashboardSkeleton() {
 function DashboardError({ message, onRetry }) {
   return (
     <div className="font-outfit">
-      <p className="font-semibold text-[#EF4444]">
+      <p className="font-semibold text-negative">
         Couldn't load the dashboard: {message}
       </p>
-      <button 
+      <button
         onClick={onRetry}
-        className="mt-3 px-4 py-2 bg-[#3B82F6] text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition"
+        className="mt-3 px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition"
       >
         Retry
       </button>
@@ -37,19 +37,48 @@ function DashboardError({ message, onRetry }) {
 }
 
 function Dashboard({ setActiveTab }) {
+
+
   useEffect(() => {
     if (setActiveTab) setActiveTab('dashboard');
   }, [setActiveTab]);
 
   const { data, loading, error, refetch } = useDashboardData();
 
+  const handleEbay = () => {
+    const { clientId, ruName } = config;
+    console.log('Connecting eBay with clientId and ruName', { clientId, ruName });
+
+    const scopes = [
+      'https://api.ebay.com/oauth/api_scope/sell.fulfillment.readonly',
+      'https://api.ebay.com/oauth/api_scope/sell.fulfillment',
+    ];
+
+    console.log("clinetId", clientId, "ruName", ruName);
+    const scope = scopes.join(' ');
+    const state = crypto.randomUUID();
+
+    sessionStorage.setItem('ebay_state', state);
+
+    const url =
+      `https://auth.sandbox.ebay.com/oauth2/authorize` +
+      `?client_id=${clientId}` +
+      `&redirect_uri=${encodeURIComponent(ruName)}` +
+      `&response_type=code` +
+      `&scope=${encodeURIComponent(scope)}` +
+      `&state=${state}`;
+
+    window.location.href = url;
+  }
+
   // Return a single wrapper to ensure layout alignment is always preserved
   return (
     <div className="dashboard-page-container font-outfit px-6 lg:px-8 py-5 -ml-5 -mt-5">
-      
+      <button className='px-4 py-2 bg-red-500 text-white text-sm rounded-md ml-4 font-bold' onClick={handleEbay}>Connect Ebay</button>
+
       {/* Show Skeleton if Loading */}
       {loading && <DashboardSkeleton />}
-      
+
       {/* Show Error if there's an issue */}
       {error && !loading && <DashboardError message={error} onRetry={refetch} />}
 
@@ -73,7 +102,7 @@ function Dashboard({ setActiveTab }) {
           }
         />
       )}
-      
+
     </div>
   );
 }
