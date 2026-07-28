@@ -24,7 +24,7 @@ const Redirect = () => {
     };
 
     // useEffect(()=>{
-    //     getebayToken("v^1.1#i^1#p^3#f^0#r^1#I^3#t^Ul41XzA6MjY0MzQ4NkY0NDI4M0FFQjcxMEJEOTMxOUQ4QTVBM0VfMV8xI0VeMTI4NA==")
+    //     getebayToken()
     // }, [])
 
     useEffect(() => {
@@ -68,12 +68,12 @@ const Redirect = () => {
         sessionStorage.removeItem('ebay_state');
 
         // Exchange code for token
-        if (code) {
-            exchangeCodeForToken(code);
-        } else {
-            setError('No authorization code received');
-            setLoading(false);
-        }
+        // if (code) {
+        //     exchangeCodeForToken(code);
+        // } else {
+        //     setError('No authorization code received');
+        //     setLoading(false);
+        // }
     }, [navigate]);
 
     console.log("Callback origin:", window.location.origin);
