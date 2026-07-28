@@ -3,6 +3,14 @@ import { INITIAL_PRODUCT_FORM } from '../constants/product.constants';
 import { validateProductForm, validateImageFile } from '../utils/validateProduct';
 import { sanitizeText } from '../utils/sanitize';
 
+const toBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Failed to read the selected image.'));
+    reader.readAsDataURL(file);
+  });
+
 /**
  * Owns all state and behavior for the Add Product form: field values,
  * validation errors, image upload/preview, reset, and submit. Keeping
@@ -25,8 +33,6 @@ export function useProductForm(onSave) {
 
   const setField = useCallback((field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear the field's error as soon as the person edits it, rather
-    // than making them wait for the next submit attempt.
     setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
   }, []);
 
@@ -67,24 +73,22 @@ export function useProductForm(onSave) {
       setSubmitError(null);
       setSuccessMessage(null);
 
-      // Sanitize free-text fields at the form boundary, before they
-      // ever reach a request payload or get rendered elsewhere.
       const payload = {
-        ...formData,
-        name: sanitizeText(formData.name),
+        productName: sanitizeText(formData.name),
+        quantity: Number(formData.currentQuantity || 0),
+        minimumQuantity: Number(formData.minimumQuantity || 0),
+        supplierCost: Number(formData.purchasePrice || 0),
+        Category: sanitizeText(formData.category),
+        sellingPrice: Number(formData.sellingPrice || 0),
         supplierName: sanitizeText(formData.supplierName),
         description: sanitizeText(formData.description),
-        purchasePrice: Number(formData.purchasePrice),
-        sellingPrice: Number(formData.sellingPrice),
-        currentQuantity: Number(formData.currentQuantity),
-   
-        image: imageFile,
+        image: imageFile ? await toBase64(imageFile) : '',
       };
 
       setIsSubmitting(true);
       try {
-        await onSave?.(payload);
-        setSuccessMessage('Product added successfully.');
+        const response = await onSave?.(payload);
+        setSuccessMessage(response?.message || response?.msg || 'Product added successfully.');
         resetForm();
       } catch (err) {
         setSubmitError(err?.message ?? 'Could not save the product.');

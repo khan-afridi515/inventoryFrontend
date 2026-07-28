@@ -43,7 +43,9 @@ const getEbayOrders = async () => {
 
       const ebayAccessToken = localStorage.getItem("ebayAccessToken");
       if (!ebayAccessToken) {
-        throw new Error("eBay access token is not available");
+        // Silently skip - eBay integration not set up yet
+        setEbayLoading(false);
+        return null;
       }
 
       const response = await ebayOrders(ebayAccessToken);

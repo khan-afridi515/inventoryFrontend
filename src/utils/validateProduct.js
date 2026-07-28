@@ -22,7 +22,6 @@ export function validateProductForm(formData) {
   const errors = {};
 
   if (isBlank(formData.name)) errors.name = 'Product name is required.';
-  if (isBlank(formData.sku)) errors.sku = 'SKU is required.';
   if (isBlank(formData.category)) errors.category = 'Category is required.';
   if (isBlank(formData.supplierName)) errors.supplierName = 'Supplier name is required.';
 
@@ -35,8 +34,8 @@ export function validateProductForm(formData) {
   if (!isValidNonNegativeNumber(formData.currentQuantity)) {
     errors.currentQuantity = 'Enter a valid quantity (0 or more).';
   }
-  if (!isValidNonNegativeNumber(formData.minimumStock)) {
-    errors.minimumStock = 'Enter a valid minimum stock (0 or more).';
+  if (!isValidNonNegativeNumber(formData.minimumQuantity)) {
+    errors.minimumQuantity = 'Enter a valid minimum quantity (0 or more).';
   }
 
   return errors;

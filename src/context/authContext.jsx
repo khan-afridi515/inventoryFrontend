@@ -4,6 +4,21 @@ import { AUTH_STORAGE_KEYS } from "../api/api";
 
 const AuthContext = createContext();
 
+const getAuthToken = (response) => {
+    const possibleTokens = [
+        response?.token,
+        response?.accessToken,
+        response?.access_token,
+        response?.loginData?.accessToken,
+        response?.loginData?.access_token,
+        response?.data?.token,
+        response?.data?.accessToken,
+        response?.data?.access_token
+    ];
+
+    return possibleTokens.find((value) => typeof value === "string" && value.trim());
+};
+
 export const AuthProvider = ({ children }) => {
 
     const [user, setUser] = useState(null);
@@ -19,19 +34,29 @@ export const AuthProvider = ({ children }) => {
             setMessage("");
 
             const response = await loginUser(values);
+            const token = getAuthToken(response);
+            const userData = response?.user ?? response?.loginData?.user ?? response?.data?.user ?? null;
 
-            localStorage.setItem(
-                AUTH_STORAGE_KEYS.accessToken,
-                   response.token
-               );
+            if (token) {
+                localStorage.setItem(
+                    AUTH_STORAGE_KEYS.accessToken,
+                    token
+                );
+                localStorage.setItem(
+                    AUTH_STORAGE_KEYS.token,
+                    token
+                );
+            }
 
-            localStorage.setItem(
-              AUTH_STORAGE_KEYS.user,
-               JSON.stringify(response.user)
-             );
+            if (userData) {
+                localStorage.setItem(
+                    AUTH_STORAGE_KEYS.user,
+                    JSON.stringify(userData)
+                );
+            }
 
-            setUser(response.user);
-            setMessage(response.msg);
+            setUser(userData);
+            setMessage(response?.message ?? response?.msg ?? "");
             return response;
 
         }
@@ -129,4 +154,6 @@ export const AuthProvider = ({ children }) => {
 
 };
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+    return useContext(AuthContext);
+}

@@ -1,101 +1,55 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Search, ChevronDown } from 'lucide-react';
-
-const initialPerformanceData = [
-  {
-    id: 1,
-    product: "Bluetooth Speaker Mini",
-    currentStock: 0,
-    sales7d: 0,
-    expected: 21,
-    performance: 0,
-    status: "Poor",
-    recommendation: "Consider discontinuing or bundling with a bestseller."
-  },
-  {
-    id: 2,
-    product: "Running Shoes Pro",
-    currentStock: 8,
-    sales7d: 0,
-    expected: 28,
-    performance: 0,
-    status: "Poor",
-    recommendation: "Consider discontinuing or bundling with a bestseller."
-  },
-  {
-    id: 3,
-    product: "Notebook Set A5 (3-pack)",
-    currentStock: 0,
-    sales7d: 0,
-    expected: 56,
-    performance: 0,
-    status: "Poor",
-    recommendation: "Consider discontinuing or bundling with a bestseller."
-  },
-  {
-    id: 4,
-    product: "Matte Lipstick Duo",
-    currentStock: 18,
-    sales7d: 2,
-    expected: 28,
-    performance: 7,
-    status: "Poor",
-    recommendation: "Consider discontinuing or bundling with a bestseller."
-  },
-  {
-    id: 5,
-    product: "USB-C Hub 7-in-1",
-    currentStock: 12,
-    sales7d: 4,
-    expected: 35,
-    performance: 11,
-    status: "Poor",
-    recommendation: "Consider discontinuing or bundling with a bestseller."
-  },
-  {
-    id: 6,
-    product: "Wireless Gaming Mouse",
-    currentStock: 45,
-    sales7d: 42,
-    expected: 40,
-    performance: 105,
-    status: "Excellent",
-    recommendation: "Highly profitable. Maintain current stock levels and marketing."
-  },
-  {
-    id: 7,
-    product: "Ergonomic Office Chair",
-    currentStock: 14,
-    sales7d: 11,
-    expected: 12,
-    performance: 91,
-    status: "Good",
-    recommendation: "Steady sales velocity. Monitor inventory thresholds closely."
-  },
-  {
-    id: 8,
-    product: "Mechanical Keyboard RGB",
-    currentStock: 25,
-    sales7d: 13,
-    expected: 20,
-    performance: 65,
-    status: "Average",
-    recommendation: "Perform minor promotional discount to bump conversion rates."
-  },
-  {
-    id: 9,
-    product: "4K Ultra Wide Monitor",
-    currentStock: 5,
-    sales7d: 1,
-    expected: 4,
-    performance: 25,
-    status: "Needs Attention",
-    recommendation: "Sales are dropping. Review competitive pricing strategies."
-  }
-];
+import { dummyData } from '../../data/dummyData';
 
 export default function ProductPerformance({ setActiveTab }) {
-  const [performanceData] = useState(initialPerformanceData);
+  // Generate performance data from dummyData
+  const generatePerformanceData = () => {
+    const productMap = {};
+
+    dummyData.forEach((item) => {
+      if (!productMap[item.product]) {
+        productMap[item.product] = {
+          product: item.product,
+          currentStock: item.currentStock,
+          actualSaleIn7Days: 0,
+          expectedSaleIn7Days: item.expectedSaleIn7Days,
+          totalRecords: 0,
+        };
+      }
+      productMap[item.product].actualSaleIn7Days += item.actualSaleIn7Days;
+      productMap[item.product].currentStock = item.currentStock; // Keep latest
+      productMap[item.product].totalRecords += 1;
+    });
+
+    return Object.values(productMap).map((item, index) => {
+      const performance =
+        item.expectedSaleIn7Days > 0
+          ? Math.round((item.actualSaleIn7Days / item.expectedSaleIn7Days) * 100)
+          : 0;
+
+      const status =
+        item.actualSaleIn7Days < item.expectedSaleIn7Days ? 'Poor' : 'Good';
+
+      const recommendation =
+        status === 'Poor'
+          ? 'Consider promotional strategies or product bundling to boost sales.'
+          : 'Great performance! Maintain current inventory and marketing efforts.';
+
+      return {
+        id: index + 1,
+        product: item.product,
+        currentStock: item.currentStock,
+        sales7d: item.actualSaleIn7Days,
+        expected: item.expectedSaleIn7Days,
+        performance,
+        status,
+        recommendation,
+      };
+    });
+  };
+
+  const [performanceData] = useState(generatePerformanceData);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Statuses');
   const [sortAsc, setSortAsc] = useState(true);
@@ -110,14 +64,8 @@ export default function ProductPerformance({ setActiveTab }) {
   // Dynamic Tailwind Badge Color Mapping
   const getStatusBadgeClass = (status) => {
     switch (status) {
-      case 'Excellent':
-        return 'text-[#10B981] bg-[#EFF6FF] border border-[#D1FAE5]';
       case 'Good':
-        return 'text-[#3B82F6] bg-[#EFF6FF] border border-[#DBEAFE]';
-      case 'Average':
-        return 'text-[#F59E0B] bg-[#FEF3C7] border border-[#FEF3C7]';
-      case 'Needs Attention':
-        return 'text-[#F97316] bg-[#FFEDD5] border border-[#FFEDD5]';
+        return 'text-[#10B981] bg-[#ECFDF5] border border-[#D1FAE5]';
       case 'Poor':
       default:
         return 'text-[#EF4444] bg-[#FEF2F2] border border-[#FEE2E2]';
@@ -126,16 +74,18 @@ export default function ProductPerformance({ setActiveTab }) {
 
   // Dynamic Performance text colors matching row criteria
   const getPerformanceTextClass = (status) => {
-    if (status === 'Excellent' || status === 'Good') return 'text-[#10B981]';
-    if (status === 'Average') return 'text-[#F59E0B]';
+    if (status === 'Good') return 'text-[#10B981]';
     return 'text-[#EF4444]';
   };
 
   // Live filter and sort logic
   const filteredData = useMemo(() => {
-    let result = performanceData.filter(item => {
-      const matchesSearch = item.product.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === 'All Statuses' || item.status === statusFilter;
+    let result = performanceData.filter((item) => {
+      const matchesSearch = item.product
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === 'All Statuses' || item.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
 
@@ -153,7 +103,7 @@ export default function ProductPerformance({ setActiveTab }) {
     <div className="mb-6">
       <h1 className="text-[32px] font-bold text-[#0F172A] tracking-tight">Product Performance</h1>
       <p className="text-[14px] text-[#64748B] mt-0.5 font-normal">
-        Products that underperformed against expected sales over the last 7 days.
+        Products performance based on actual sales vs expected sales in the last 7 days.
       </p>
     </div>
 
@@ -185,10 +135,7 @@ export default function ProductPerformance({ setActiveTab }) {
               className="w-full sm:w-auto appearance-none pl-4 pr-10 py-2 border border-[#E2E8F0] rounded-xl text-[14px] font-medium text-[#0F172A] bg-white focus:outline-none focus:border-[#3B82F6] cursor-pointer"
             >
               <option value="All Statuses">All Statuses</option>
-              <option value="Excellent">Excellent</option>
               <option value="Good">Good</option>
-              <option value="Average">Average</option>
-              <option value="Needs Attention">Needs Attention</option>
               <option value="Poor">Poor</option>
             </select>
             <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#64748B] pointer-events-none" />
@@ -203,8 +150,8 @@ export default function ProductPerformance({ setActiveTab }) {
               <tr className="border-b border-[#F1F5F9] bg-white text-[#64748B] font-medium">
                 <th className="py-3.5 px-6 font-normal text-[#64748B] w-[25%]">Product</th>
                 <th className="py-3.5 px-6 font-normal text-right text-[#64748B]">Current Stock</th>
-                <th className="py-3.5 px-6 font-normal text-right text-[#64748B]">Sales (7d)</th>
-                <th className="py-3.5 px-6 font-normal text-right text-[#475569]">Expected</th>
+                <th className="py-3.5 px-6 font-normal text-right text-[#64748B]">Actual Sales (7d)</th>
+                <th className="py-3.5 px-6 font-normal text-right text-[#475569]">Expected Sales</th>
                 <th 
                   className="py-3.5 px-6 font-normal text-right text-[#64748B] cursor-pointer select-none"
                   onClick={() => setSortAsc(!sortAsc)}

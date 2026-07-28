@@ -6,7 +6,7 @@ export const API_BASE_URL =
 export const AUTH_STORAGE_KEYS = {
 
     accessToken: "accessToken",
-
+    token: "token",
     user: "user"
 
 };

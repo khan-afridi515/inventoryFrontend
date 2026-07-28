@@ -56,17 +56,13 @@ export default function Sales({ setActiveTab }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [sortByDate, setSortByDate] = useState('desc');
-  const [ebayOrdersData, setEbayOrdersData] = useState(null);
-  const [localEbayError, setLocalEbayError] = useState(null);
-  const [localEbayMessage, setLocalEbayMessage] = useState('');
 
   const { getEbayOrders, ebayLoading, ebayError, ebayMessage } = ebayAuth();
 
-  const dataSource = Array.isArray(ebayOrdersData)
-    ? ebayOrdersData
-    : Array.isArray(ebayOrdersData?.orders)
-      ? ebayOrdersData.orders
-      : salesData;
+
+  console.log("getEbayOrder", ebayLoading, ebayError, ebayMessage);
+
+  const dataSource = salesData;
 
   const calculateTotalCost = (qty, purchase) => qty * purchase;
   const calculateTotalRevenue = (qty, selling) => qty * selling;
@@ -133,26 +129,9 @@ export default function Sales({ setActiveTab }) {
     document.body.removeChild(link);
   };
 
-  const handleFetchEbayOrders = async () => {
-    setLocalEbayError(null);
-    setLocalEbayMessage('');
-
-    try {
-      const response = await getEbayOrders();
-      setEbayOrdersData(response?.data || response);
-      setLocalEbayMessage(response?.message || 'eBay orders loaded successfully.');
-    } catch (error) {
-      setLocalEbayError(error.message || 'Failed to fetch eBay orders.');
-    }
-  };
-
   useEffect(() => {
-    const fetchOrdersOnMount = async () => {
-      await handleFetchEbayOrders();
-    };
-
-    fetchOrdersOnMount();
-  }, [getEbayOrders]);
+    getEbayOrders();
+  }, []);
 
   return (
     <div className="dashboard-page-container font-outfit p-6  px-6 lg:px-8 pt-1 pb-5 -mt-2" >
@@ -177,20 +156,15 @@ export default function Sales({ setActiveTab }) {
         </div>
       </div>
 
-      {(localEbayMessage || localEbayError || ebayError || ebayMessage) && (
+      {/* {(ebayError || ebayMessage) && (
         <div className="mb-6 rounded-2xl border border-[#E2E8F0] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-          {localEbayError || ebayError ? (
-            <p className="text-sm font-medium text-[#EF4444]">{localEbayError || ebayError}</p>
+          {ebayError ? (
+            <p className="text-sm font-medium text-[#EF4444]">{ebayError}</p>
           ) : (
-            <p className="text-sm font-medium text-[#16A34A]">{localEbayMessage || ebayMessage}</p>
-          )}
-          {ebayOrdersData && (
-            <pre className="mt-3 max-h-40 overflow-auto text-xs text-[#334155] bg-[#F8FAFC] rounded-lg p-3">
-              {JSON.stringify(ebayOrdersData, null, 2)}
-            </pre>
+            <p className="text-sm font-medium text-[#16A34A]">{ebayMessage}</p>
           )}
         </div>
-      )}
+      )} */}
 
       {/* KPI Cards Row - Fixed Overflow & Preserved w-60 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -320,14 +294,16 @@ export default function Sales({ setActiveTab }) {
 
             <tbody className="divide-y divide-[#F1F5F9] text-[14px]">
               {filteredSales.length > 0 ? (
-                filteredSales.map((item) => {
+                filteredSales.map((item, index) => {
                   const totalCost = calculateTotalCost(item.qtySold, item.unitPurchase);
                   const totalRevenue = calculateTotalRevenue(item.qtySold, item.unitSelling);
                   const profitLoss = calculateProfitLoss(totalRevenue, totalCost);
                   const isProfit = profitLoss >= 0;
+                  // Use item.id if available, otherwise fallback to product+date+index combination
+                  const uniqueKey = item.id || `${item.product}-${item.date}-${index}`;
 
                   return (
-                    <tr key={item.id} className="hover:bg-[#F8FAFC]/50 transition-colors">
+                    <tr key={uniqueKey} className="hover:bg-[#F8FAFC]/50 transition-colors">
                       <td className="py-4 px-5 font-normal text-[#0F172A]">{item.product}</td>
                       <td className="py-4 px-5 text-right font-normal text-[#334155]">{item.qtySold}</td>
                       <td className="py-4 px-5 text-right font-normal text-[#64748B]">${item.unitPurchase.toFixed(2)}</td>

@@ -1,22 +1,25 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useProductContext } from '../../context/productContext';
+import { CATEGORY_OPTIONS } from '../../constants/product.constants';
 
 
 const UpdateProduct = () => {
 
     const { id } = useParams();
-    console.log("id", id);
+    const navigate = useNavigate();
+      const { updateProductById, updateLoading, updateError, updateMessage } = useProductContext();
+    const [successLocalMessage, setSuccessLocalMessage] = useState('');
     
   const [formData, setFormData] = useState({
     productImage: null,
-    productName: 'Wireless Mouse MX2',
-    sku: 'SKU-EL-1001',
-    category: 'Electronics',
-    supplierName: 'NovaTech Supplies',
-    purchasePrice: 45.99,
-    currentQuantity: 150,
-    minimumStock: 20,
-    description: 'High-precision wireless mouse with ergonomic design and long battery life.'
+    productName: '',
+    category: '',
+    supplierName: '',
+    purchasePrice: '',
+    currentQuantity: '',
+    minimumQuantity: '',
+    description: ''
   });
 
   const [imagePreview, setImagePreview] = useState(null);
@@ -44,23 +47,51 @@ const UpdateProduct = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const toBase64 = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('Failed to read the selected image.'));
+      reader.readAsDataURL(file);
+    });
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Updated Product Data:', formData);
-    alert('Product updated successfully!');
-    // Add your update logic here
+    try {
+      const payload = {};
+
+      if (formData.productName && String(formData.productName).trim() !== '') {
+        payload.productName = String(formData.productName).trim();
+      }
+      if (formData.category) payload.category = formData.category;
+      if (formData.supplierName && String(formData.supplierName).trim() !== '') {
+        payload.supplierName = String(formData.supplierName).trim();
+      }
+      if (formData.purchasePrice !== '') payload.purchasePrice = Number(formData.purchasePrice);
+      if (formData.currentQuantity !== '') payload.currentQuantity = Number(formData.currentQuantity);
+      if (formData.minimumQuantity !== '') payload.minimumQuantity = Number(formData.minimumQuantity);
+      if (formData.description && String(formData.description).trim() !== '') payload.description = String(formData.description).trim();
+      if (formData.productImage) payload.image = await toBase64(formData.productImage);
+
+      const res = await updateProductById(id, payload);
+      const msg = res?.message || res?.msg || 'Product updated successfully.';
+      setSuccessLocalMessage(msg);
+      // show message briefly then navigate to products
+     
+    } catch (err) {
+      console.error('Update failed', err);
+    }
   };
 
   const handleReset = () => {
     setFormData({
       productImage: null,
       productName: '',
-      sku: '',
       category: '',
       supplierName: '',
-      purchasePrice: 0,
-      currentQuantity: 0,
-      minimumStock: 0,
+      purchasePrice: '',
+      currentQuantity: '',
+      minimumQuantity: '',
       description: ''
     });
     setImagePreview(null);
@@ -68,6 +99,7 @@ const UpdateProduct = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+      {/* Loading now shown only in submit button */}
       {/* Header */}
       <div className="border-b border-gray-200 pb-4 mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Update Product</h2>
@@ -75,6 +107,16 @@ const UpdateProduct = () => {
       </div>
 
       <form onSubmit={handleSubmit}>
+        {updateError && (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 mb-4">
+            {updateError}
+          </div>
+        )}
+        {successLocalMessage && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 mb-4">
+            {successLocalMessage}
+          </div>
+        )}
         {/* Product Image Section */}
         <div className="mb-8">
           <h3 className="text-lg font-semibold text-gray-700 mb-3">Product Image</h3>
@@ -120,7 +162,7 @@ const UpdateProduct = () => {
             {/* Product Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product Name <span className="text-red-500">*</span>
+                Product Name
               </label>
               <input
                 type="text"
@@ -129,51 +171,34 @@ const UpdateProduct = () => {
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Wireless Mouse MX2"
-                required
+                
               />
             </div>
 
-            {/* SKU */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                SKU <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="sku"
-                value={formData.sku}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="SKU-EL-1001"
-                required
-              />
-            </div>
+            {/* SKU removed */}
 
             {/* Category */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category <span className="text-red-500">*</span>
+                Category
               </label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
               >
                 <option value="">Select Category</option>
-                <option value="Electronics">Electronics</option>
-                <option value="Furniture">Furniture</option>
-                <option value="Clothing">Clothing</option>
-                <option value="Books">Books</option>
-                <option value="Food">Food</option>
+                {CATEGORY_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
               </select>
             </div>
 
             {/* Supplier Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Supplier Name <span className="text-red-500">*</span>
+                Supplier Name
               </label>
               <input
                 type="text"
@@ -182,14 +207,14 @@ const UpdateProduct = () => {
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="NovaTech Supplies"
-                required
+                
               />
             </div>
 
             {/* Purchase Price */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Purchase Price <span className="text-red-500">*</span>
+                Purchase Price
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-2 text-gray-500">$</span>
@@ -201,8 +226,7 @@ const UpdateProduct = () => {
                   step="0.01"
                   min="0"
                   className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="0.00"
-                  required
+                    placeholder="0.00"
                 />
               </div>
             </div>
@@ -210,7 +234,7 @@ const UpdateProduct = () => {
             {/* Current Quantity */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Current Quantity <span className="text-red-500">*</span>
+                Current Quantity
               </label>
               <input
                 type="number"
@@ -220,24 +244,24 @@ const UpdateProduct = () => {
                 min="0"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0"
-                required
+                
               />
             </div>
 
-            {/* Minimum Stock */}
+            {/* Minimum Quantity */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Minimum Stock <span className="text-red-500">*</span>
+                Minimum Quantity
               </label>
               <input
                 type="number"
-                name="minimumStock"
-                value={formData.minimumStock}
+                name="minimumQuantity"
+                value={formData.minimumQuantity}
                 onChange={handleInputChange}
                 min="0"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0"
-                required
+                
               />
             </div>
           </div>
@@ -260,9 +284,20 @@ const UpdateProduct = () => {
         <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-200">
           <button
             type="submit"
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+            disabled={updateLoading}
+            className="flex items-center justify-center gap-2 flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Update Product
+            {updateLoading ? (
+              <>
+                <svg className="h-5 w-5 animate-spin text-white" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+                <span>Updating…</span>
+              </>
+            ) : (
+              'Update Product'
+            )}
           </button>
           <button
             type="button"
@@ -273,6 +308,7 @@ const UpdateProduct = () => {
           </button>
           <button
             type="button"
+            onClick={() => navigate(-1)}
             className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
           >
             Cancel

@@ -14,12 +14,14 @@ export async function apiRequest(endpoint,
        ...headers
      };
 
-    if(body){
+    if(body !== undefined && body !== null){
     requestHeaders["Content-Type"]="application/json";
     }
 
     const token=localStorage.getItem(
      AUTH_STORAGE_KEYS.accessToken
+    ) || localStorage.getItem(
+     AUTH_STORAGE_KEYS.token
     );
 
     if(token){
@@ -31,7 +33,7 @@ export async function apiRequest(endpoint,
           {
             method,
             headers:requestHeaders,
-            body:body
+            body:body !== undefined && body !== null
             ?
             JSON.stringify(body)
             :

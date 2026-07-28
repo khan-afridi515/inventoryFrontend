@@ -12,16 +12,10 @@ import {
   WifiOff
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useProductContext } from '../../context/productContext';
 
 
-const API_URL = 'http://localhost:3000/api/v1/get';
-
-const getApiItems = (json) => {
-  if (Array.isArray(json.data)) return json.data;
-  if (Array.isArray(json.products)) return json.products;
-  if (Array.isArray(json)) return json;
-  return [];
-};
+// Products are fetched via `useProductContext().fetchProducts()`
 
 /** Static product data */
 const STATIC_PRODUCTS = [
@@ -128,50 +122,47 @@ const mapApiProduct = (p) => ({
   id: p._id,
   name: p.productName ?? 'Unnamed Product',
   category: p.Category ?? 'Uncategorized',
-  img: p.img ?? null,
+  // Support both `img` and `image` field names from the backend
+  img: p.img ?? p.image ?? null,
   supplierName: p.supplierName ?? '',
   description: p.description ?? '',
   sku: p.sku ?? '',
   sellingPrice: Number(p.sellingPrice) || 0,
   purchasePrice: Number(p.supplierCost) || 0,
-  quantity: Number(p.qty) || 0,
+  // Support both `qty` and `quantity` field names from the backend
+  quantity: Number(p.qty ?? p.quantity) || 0,
+  minimumQuantity: Number(p.minimumQuantity ?? p.minimumStock ?? 0) || 0,
 });
 
 export default function Products({ setActiveTab }) {
 
+
+
   const navigate = useNavigate();
 
+  const { productsLoading, productsError, productsList, fetchProducts, deleteProductId, deleteLoading, deleteError, deleteMessage, clearDeleteMessage } = useProductContext();
   const [products, setProducts] = useState(STATIC_PRODUCTS);
-  const [loading, setLoading] = useState(true);
-  const [apiError, setApiError] = useState(null);   // null = no error
   const [isApiData, setIsApiData] = useState(false);  // true = live data shown
 
   useEffect(() => {
     if (setActiveTab) setActiveTab('products');
   }, [setActiveTab]);
 
-  /** Fetch products from the real API; fall back silently on any failure */
-  const fetchProducts = useCallback(async () => {
-    setLoading(true);
-    setApiError(null);
-    try {
-      const res = await fetch(API_URL);
-      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
-      const json = await res.json();
-      const items = getApiItems(json);
-      if (items.length === 0) throw new Error('Empty product list from API');
-      setProducts(items.map(mapApiProduct));
-      setIsApiData(true);
-    } catch (err) {
-      // Keep the static fallback data already in state
-      setApiError(err.message ?? 'Could not reach the server');
-      setIsApiData(false);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  console.log("productlist", productsList);
 
-  useEffect(() => { fetchProducts(); }, [fetchProducts]);
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  useEffect(() => {
+    if (Array.isArray(productsList) && productsList.length > 0) {
+      setProducts(productsList.map(mapApiProduct));
+      setIsApiData(true);
+    } else if (!productsLoading) {
+      setProducts(STATIC_PRODUCTS);
+      setIsApiData(false);
+    }
+  }, [productsList, productsLoading]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
@@ -193,9 +184,12 @@ export default function Products({ setActiveTab }) {
 
   const fileInputRef = useRef(null);
 
-  const getStatus = (qty) => {
+  const getStatus = (product) => {
+    const qty = Number(product?.quantity ?? 0) || 0;
+    const minimumQuantity = Number(product?.minimumQuantity ?? 0) || 0;
+
     if (qty === 0) return "Out of Stock";
-    if (qty > 0 && qty <= 20) return "Low Stock";
+    if (qty <= minimumQuantity) return "Low Stock";
     return "In Stock";
   };
 
@@ -229,7 +223,7 @@ export default function Products({ setActiveTab }) {
       `"${p.category}"`,
       p.purchasePrice.toFixed(2),
       p.quantity,
-      `"${getStatus(p.quantity)}"`
+      `"${getStatus(p)}"`
     ]);
 
     const csvContent = "data:text/csv;charset=utf-8,"
@@ -315,26 +309,23 @@ export default function Products({ setActiveTab }) {
   };
 
   const handleDelete = async (id) => {
-    const url = `http://localhost:3000/api/v1/delete/${id}`;
-
     try {
-      const response = await fetch(url, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log(data);
+      await deleteProductId(id);
       setProducts((prevProducts) => prevProducts.filter((product) => product.id !== id));
-      alert('Product deleted successfully.');
     } catch (error) {
       console.error('Delete Error:', error);
-      alert('Could not delete product. Please try again.');
     }
   };
+
+  useEffect(() => {
+    if (!deleteMessage) return;
+
+    const timer = setTimeout(() => {
+      clearDeleteMessage();
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [deleteMessage, clearDeleteMessage]);
 
   const handleOpenEdit = (product) => {
     setEditingProduct({ ...product });
@@ -386,15 +377,15 @@ export default function Products({ setActiveTab }) {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'All Categories' || product.category === selectedCategory;
 
-      const currentStatus = getStatus(product.quantity);
+      const currentStatus = getStatus(product);
       const matchesStatus = selectedStatus === 'All Statuses' || currentStatus === selectedStatus;
 
       return matchesSearch && matchesCategory && matchesStatus;
     });
   }, [products, searchTerm, selectedCategory, selectedStatus]);
 
-  /** ── Shimmer skeleton rows shown while loading ── */
-  if (loading) {
+  /** ── Shimmer skeleton rows shown while loading on first API request ── */
+  if (productsLoading) {
     return (
       <div className="dashboard-page-container bg-[#F8FAFC] font-sans antialiased tracking-tight">
         {/* Header placeholder */}
@@ -521,13 +512,29 @@ export default function Products({ setActiveTab }) {
       </div>
 
       {/* API error banner (shown when we fell back to static data) */}
-      {apiError && (
+      {productsError && (
         <div className="flex items-center gap-3 mx-6 lg:mx-8 mb-4 px-4 py-3 rounded-xl bg-[#FFF7ED] border border-[#FDE68A] text-xs font-semibold text-[#92400E]">
           <WifiOff className="h-4 w-4 text-[#D97706] shrink-0" />
           <span>
             <strong>Couldn't reach the server</strong> — showing cached demo data.
-            &nbsp;({apiError})
+            &nbsp;({productsError})
           </span>
+        </div>
+      )}
+      {deleteLoading && (
+        <div className="flex items-center gap-3 mx-6 lg:mx-8 mb-4 px-4 py-3 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] text-xs font-semibold text-[#1D4ED8]">
+          <div className="w-3 h-3 rounded-full bg-[#1D4ED8] animate-pulse" />
+          Deleting product…
+        </div>
+      )}
+      {deleteError && (
+        <div className="flex items-center gap-3 mx-6 lg:mx-8 mb-4 px-4 py-3 rounded-xl bg-[#FEF2F2] border border-[#FECACA] text-xs font-semibold text-[#B91C1C]">
+          <span className="font-bold">Delete failed:</span> {deleteError}
+        </div>
+      )}
+      {deleteMessage && !deleteLoading && (
+        <div className="flex items-center gap-3 mx-6 lg:mx-8 mb-4 px-4 py-3 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0] text-xs font-semibold text-[#047857]">
+          <span className="font-bold">Success:</span> {deleteMessage}
         </div>
       )}
 
@@ -602,7 +609,7 @@ export default function Products({ setActiveTab }) {
               {filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => {
                   const isChecked = selectedRows.includes(product.id);
-                  const currentStatus = getStatus(product.quantity);
+                  const currentStatus = getStatus(product);
 
                   return (
                     <tr key={product.id} className="hover:bg-[#F8FAFC]/50 transition-colors">
