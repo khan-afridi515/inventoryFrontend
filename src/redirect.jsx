@@ -10,18 +10,18 @@ const Redirect = () => {
     const { getebayToken, ebayError, ebayLoading, ebayMessage } = ebayAuth();
 
 
-    const exchangeCodeForToken = async (authorizationCode) => {
-        try {
-            console.log('eBay authorization code received:', authorizationCode);
-            await getebayToken(authorizationCode);
-            navigate('/');
-        } catch (exchangeError) {
-            console.error('Token exchange failed:', exchangeError);
-            setError('Failed to complete eBay authorization.');
-        } finally {
-            setLoading(false);
-        }
-    };
+    // const exchangeCodeForToken = async (authorizationCode) => {
+    //     try {
+    //         console.log('eBay authorization code received:', authorizationCode);
+    //         await getebayToken(authorizationCode);
+    //         navigate('/');
+    //     } catch (exchangeError) {
+    //         console.error('Token exchange failed:', exchangeError);
+    //         setError('Failed to complete eBay authorization.');
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
     // useEffect(()=>{
     //     getebayToken()
@@ -73,12 +73,12 @@ const Redirect = () => {
         localStorage.removeItem('ebay_state');
 
         // Exchange code for token
-        if (code) {
-            exchangeCodeForToken(code);
-        } else {
-            setError('No authorization code received');
-            setLoading(false);
-        }
+        // if (code) {
+        //     exchangeCodeForToken(code);
+        // } else {
+        //     setError('No authorization code received');
+        //     setLoading(false);
+        // }
     }, [navigate]);
 
     if (error) {
