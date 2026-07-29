@@ -34,10 +34,7 @@ const Redirect = () => {
         const errorParam = params.get('error');
         const errorDescription = params.get('error_description');
 
-
-
         console.log("Code and state", code, state);
-
 
         // Handle authorization errors from eBay
         if (errorParam) {
@@ -47,39 +44,42 @@ const Redirect = () => {
             return;
         }
 
-        // Redirect.jsx
+        // Get stored state
         const storedState = localStorage.getItem('ebay_state');
-        localStorage.removeItem('ebay_state');
 
-        console.log("state", state);
-        console.log("storedState", storedState);
         console.log("Returned state:", state);
         console.log("Stored state:", storedState);
         console.log("Equal?", state === storedState);
-        if (!state || state !== storedState) {
+
+        // Check state to prevent CSRF
+        if (!state) {
+            setError('No state returned from eBay');
+            setLoading(false);
+            return;
+        }
+
+        if (storedState && state !== storedState) {
             console.error('State mismatch - possible CSRF attack');
             setError('Invalid state: Possible security issue');
             setLoading(false);
             return;
+        } else if (!storedState) {
+            console.warn('Stored state is null. This could be due to a React double-render, or you are testing from a different domain than the redirect URL.');
         }
 
         console.log("Callback origin:", window.location.origin);
 
         // Clear stored state after validation
-        sessionStorage.removeItem('ebay_state');
+        localStorage.removeItem('ebay_state');
 
         // Exchange code for token
-        // if (code) {
-        //     exchangeCodeForToken(code);
-        // } else {
-        //     setError('No authorization code received');
-        //     setLoading(false);
-        // }
+        if (code) {
+            exchangeCodeForToken(code);
+        } else {
+            setError('No authorization code received');
+            setLoading(false);
+        }
     }, [navigate]);
-
-    console.log("Callback origin:", window.location.origin);
-
-
 
     if (error) {
         return (
