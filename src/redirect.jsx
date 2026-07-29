@@ -72,13 +72,15 @@ const Redirect = () => {
         // Clear stored state after validation
         localStorage.removeItem('ebay_state');
 
-        // Exchange code for token
-        // if (code) {
-        //     exchangeCodeForToken(code);
-        // } else {
-        //     setError('No authorization code received');
-        //     setLoading(false);
-        // }
+        // Exchange code for token (backend not deployed yet)
+        if (code) {
+            console.log("Authorization successful! Code:", code);
+            setLoading(false);
+            navigate('/');
+        } else {
+            setError('No authorization code received');
+            setLoading(false);
+        }
     }, [navigate]);
 
     if (error) {
