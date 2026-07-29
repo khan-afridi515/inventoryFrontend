@@ -47,8 +47,9 @@ const Redirect = () => {
             return;
         }
 
-        // Validate state token to prevent CSRF attacks
-        const storedState = sessionStorage.getItem('ebay_state');
+        // Redirect.jsx
+        const storedState = localStorage.getItem('ebay_state');
+        localStorage.removeItem('ebay_state');
 
         console.log("state", state);
         console.log("storedState", storedState);

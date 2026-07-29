@@ -58,10 +58,11 @@ function Dashboard({ setActiveTab }) {
     const scope = scopes.join(' ');
     const state = crypto.randomUUID();
 
-    sessionStorage.setItem('ebay_state', state);
+    // handleEbay
+    localStorage.setItem('ebay_state', state);
 
     console.log("Generated state:", state);
-    console.log("Stored state:", sessionStorage.getItem("ebay_state"));
+    console.log("Stored state:", localStorage.getItem("ebay_state"));
 
     const url =
       `https://auth.sandbox.ebay.com/oauth2/authorize` +
