@@ -27,8 +27,29 @@ export default function Sales({ setActiveTab }) {
 
   const { getEbayOrders, ebayError, ebayMessage, ebayData } = ebayAuth();
 
-  // const dataSource = ebayData && ebayData.length > 0 ? ebayData : salesData;
-  const dataSource = ebayData;
+  useEffect(() => {
+    if (setActiveTab) {
+      setActiveTab('sales');
+    }
+  }, [setActiveTab]);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await getEbayOrders();
+        console.log("Orders received in Sales:", response);
+      } catch (error) {
+        console.error("Failed to fetch eBay orders:", error);
+      }
+    };
+
+    fetchOrders();
+  }, [getEbayOrders]);
+
+  const salesRows = useMemo(() => {
+    if (Array.isArray(ebayData) && ebayData.length > 0) return ebayData;
+    return Array.isArray(salesData) ? salesData : [];
+  }, [ebayData, salesData]);
 
 
   // Safe Math Helpers (Guards against undefined/NaN values)
@@ -38,8 +59,8 @@ export default function Sales({ setActiveTab }) {
 
   // Filter and sort sales list cleanly
   const filteredSales = useMemo(() => {
-    let result = salesData.filter((item) =>
-      item.product.toLowerCase().includes(searchTerm.toLowerCase())
+    let result = salesRows.filter((item) =>
+      (item.product || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     result.sort((a, b) => {
@@ -49,7 +70,7 @@ export default function Sales({ setActiveTab }) {
     });
 
     return result;
-  }, [dataSource, searchTerm, sortByDate]);
+  }, [salesRows, searchTerm, sortByDate]);
 
   // Pagination operates on the filtered/sorted set — so page numbers,
   // "showing X of Y", etc. always reflect the current search, not the
@@ -108,6 +129,10 @@ export default function Sales({ setActiveTab }) {
       const cost = calculateTotalCost(item.qtySold, item.unitPurchase);
       const revenue = calculateTotalRevenue(item.qtySold, item.unitSelling);
       const profitLoss = calculateProfitLoss(revenue, cost);
+
+      const qty = Number(item.qtySold ?? 0);
+      const purchase = Number(item.unitPurchase ?? 0);
+      const selling = Number(item.unitSelling ?? 0);
 
       return [
         `"${item.product || 'Unknown Product'}"`,
@@ -304,12 +329,11 @@ export default function Sales({ setActiveTab }) {
 
             <tbody className="divide-y divide-[#F1F5F9] text-[14px]">
               {pagination.pageItems.length > 0 ? (
-                pagination.pageItems.map((item) => {
+                pagination.pageItems.map((item, index) => {
                   const totalCost = calculateTotalCost(item.qtySold, item.unitPurchase);
                   const totalRevenue = calculateTotalRevenue(item.qtySold, item.unitSelling);
                   const profitLoss = calculateProfitLoss(totalRevenue, totalCost);
                   const isProfit = profitLoss >= 0;
-                  // Use item.id if available, otherwise fallback to product+date+index combination
                   const uniqueKey = item.id || `${item.product}-${item.date}-${index}`;
 
                   return (
@@ -317,10 +341,10 @@ export default function Sales({ setActiveTab }) {
                       <td className="py-4 px-5 font-normal text-[#0F172A]">{item.product}</td>
                       <td className="py-4 px-5 text-right font-normal text-[#334155]">{item.qtySold}</td>
                       <td className="py-4 px-5 text-right font-normal text-[#64748B]">
-                        ${item.unitPurchase.toFixed(2)}
+                        ${Number(item.unitPurchase ?? 0).toFixed(2)}
                       </td>
                       <td className="py-4 px-5 text-right font-normal text-[#64748B]">
-                        ${item.unitSelling.toFixed(2)}
+                        ${Number(item.unitSelling ?? 0).toFixed(2)}
                       </td>
                       <td className="py-4 px-5 text-right font-normal text-[#334155]">${totalCost.toFixed(2)}</td>
                       <td className="py-4 px-5 text-right font-normal text-[#334155]">
