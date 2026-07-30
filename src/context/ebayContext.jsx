@@ -40,7 +40,7 @@ export const EbayProvider = ({ children }) => {
       setEbayMessage("");
 
       const response = await ebayOrders();
-      console.log("eBay orders response", response.data);
+      console.log("eBay orders response", response);
       setEbayMessage("Fetched eBay orders successfully");
       setEbayData(response.data);
       return response;
