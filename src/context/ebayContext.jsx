@@ -6,51 +6,43 @@ const ebayContext = createContext();
 
 export const EbayProvider = ({ children }) => {
 
-    const [ebayLoading, setEbayLoading] = useState(false);
-    const [ebayError, setEbayError] = useState(null);
-    const [ebayMessage, setEbayMessage] = useState("");
+  const [ebayLoading, setEbayLoading] = useState(false);
+  const [ebayError, setEbayError] = useState(null);
+  const [ebayMessage, setEbayMessage] = useState("");
+  const [ebayData, setEbayData] = useState(null);
 
-const getebayToken = async (values) =>{
-    try{
-      setEbayLoading(true);
-      setEbayError(null);
-      setEbayMessage("");
-
-      const response = await ebayToken(values);
-    
-      console.log("ebay response", response);
-      console.log("ebay access token", response.data.access_token);
-      localStorage.setItem("ebayAccessToken", response.data.access_token);
-      localStorage.setItem("ebayRefreshToken", response.data.refresh_token);
-
-      setEbayMessage(response.message);
-      return response;
-    }
-    catch(err){
-        setEbayError(err.message);
-        throw err;
-    }
-    finally{
-        setEbayLoading(false);
-    }
-}
-
-const getEbayOrders = async () => {
+  const getebayToken = async (values) => {
     try {
       setEbayLoading(true);
       setEbayError(null);
       setEbayMessage("");
 
-      const ebayAccessToken = localStorage.getItem("ebayAccessToken");
-      if (!ebayAccessToken) {
-        // Silently skip - eBay integration not set up yet
-        setEbayLoading(false);
-        return null;
-      }
+      const response = await ebayToken(values);
 
-      const response = await ebayOrders(ebayAccessToken);
-      console.log("eBay orders response", response);
+      console.log("ebay response", response);
+
+      setEbayMessage(response.message);
+      return response;
+    }
+    catch (err) {
+      setEbayError(err.message);
+      throw err;
+    }
+    finally {
+      setEbayLoading(false);
+    }
+  }
+
+  const getEbayOrders = async () => {
+    try {
+      setEbayLoading(true);
+      setEbayError(null);
+      setEbayMessage("");
+
+      const response = await ebayOrders();
+      console.log("eBay orders response", response.data);
       setEbayMessage("Fetched eBay orders successfully");
+      setEbayData(response.data);
       return response;
     } catch (err) {
       setEbayError(err.message);
@@ -58,14 +50,14 @@ const getEbayOrders = async () => {
     } finally {
       setEbayLoading(false);
     }
-}
+  }
 
 
-    return (
-        <ebayContext.Provider value={{ getebayToken, getEbayOrders, ebayError, ebayLoading, ebayMessage }}>
-            {children}
-        </ebayContext.Provider>
-    );
+  return (
+    <ebayContext.Provider value={{ getebayToken, getEbayOrders, ebayError, ebayLoading, ebayMessage, ebayData }}>
+      {children}
+    </ebayContext.Provider>
+  );
 }
 
 export const ebayAuth = () => useContext(ebayContext);

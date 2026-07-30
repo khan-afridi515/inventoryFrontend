@@ -10,11 +10,16 @@ export const ebayToken = (code) => {
     )
 }
 
-export const ebayOrders = (ebayAccessToken) => {
+export const ebayOrders = () => {
     return apiRequest("ebay/orders",
         {
-            method: "POST",
-            body: { accessToken: ebayAccessToken }
+            method: "GET"
         }
     )
+}
+
+export const ebayNotifications = () => {
+    return apiRequest("ebay/notifications", {
+        method: "GET"
+    });
 }

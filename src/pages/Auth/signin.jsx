@@ -7,7 +7,9 @@ import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, loading, error, message } = useAuth();
+  const { login, loading, error, message, user } = useAuth();
+
+  console.log("user", user);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -117,11 +119,10 @@ export default function Login() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Enter your email"
-                className={`w-full pl-12 pr-4 py-3 border rounded-xl outline-none transition ${
-                  errors.email
-                    ? "border-red-500"
-                    : "border-gray-200 focus:border-blue-500"
-                }`}
+                className={`w-full pl-12 pr-4 py-3 border rounded-xl outline-none transition ${errors.email
+                  ? "border-red-500"
+                  : "border-gray-200 focus:border-blue-500"
+                  }`}
               />
             </div>
 
@@ -147,11 +148,10 @@ export default function Login() {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Enter your password"
-                className={`w-full pl-12 pr-4 py-3 border rounded-xl outline-none transition ${
-                  errors.password
-                    ? "border-red-500"
-                    : "border-gray-200 focus:border-blue-500"
-                }`}
+                className={`w-full pl-12 pr-4 py-3 border rounded-xl outline-none transition ${errors.password
+                  ? "border-red-500"
+                  : "border-gray-200 focus:border-blue-500"
+                  }`}
               />
             </div>
 

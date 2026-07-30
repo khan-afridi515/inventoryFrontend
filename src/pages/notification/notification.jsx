@@ -1,7 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useNotifications } from '../../context/notificationContext';
 import { Search, ChevronDown, ShoppingBag } from 'lucide-react';
 
-export default function Notifications({ setActiveTab, notifications, setNotifications }) {
+export default function Notifications({ setActiveTab }) {
+  const { notifications, setNotifications } = useNotifications();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('All');
 

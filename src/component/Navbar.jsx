@@ -1,10 +1,35 @@
-import React, { useState } from 'react';
-import { Search, Bell } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { Search, Bell, LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/authContext';
+
+function getInitials(name) {
+  if (!name) return 'U';
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join('');
+}
 
 export default function Navbar({ activeTab, setActiveTab, unreadCount = 0 }) {
-  const [userInitials] = useState('AR');
+  const { logout, user } = useAuth();
+  const navigate = useNavigate();
+  const userInitials = getInitials(user?.name);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const pageNames = {
     dashboard: 'Dashboard',
@@ -71,10 +96,30 @@ export default function Navbar({ activeTab, setActiveTab, unreadCount = 0 }) {
           )}
         </Link>
 
-        {/* Circular Profile Avatar */}
-        <button className="hidden sm:flex items-center justify-center w-10 h-10 rounded-lg bg-[#E8F0FE] border border-[#D0E1FD] text-[#1A73E8] hover:bg-[#D0E1FD] transition-colors duration-150 font-bold text-sm shrink-0">
-          {userInitials}
-        </button>
+        {/* Profile Dropdown Container */}
+        <div className="relative hidden sm:block" ref={dropdownRef}>
+          <button 
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#E8F0FE] border border-[#D0E1FD] text-[#1A73E8] hover:bg-[#D0E1FD] transition-colors duration-150 font-bold text-sm shrink-0"
+          >
+            {userInitials}
+          </button>
+          
+          {isDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white border border-border rounded-xl shadow-lg py-2 z-50">
+              <button
+                onClick={() => {
+                  logout();
+                  navigate('/login');
+                }}
+                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-slate-50 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </button>
+            </div>
+          )}
+        </div>
 
       </div>
 

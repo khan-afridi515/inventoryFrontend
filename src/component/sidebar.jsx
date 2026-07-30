@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/authContext';
 import { 
   LayoutGrid, 
   Package, 
@@ -31,8 +32,21 @@ const StockpileLogoIcon = () => (
   </svg>
 );
 
+function getInitials(name) {
+  if (!name) return 'U';
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join('');
+}
+
 export default function Sidebar({ activeTab, setActiveTab, isCollapsed = false, toggleCollapse, unreadCount = 0 }) {
+  const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const userInitials = getInitials(user?.name);
+  const userFullName = user?.name || 'Stockpile User';
   const location = useLocation();
 
   const menuItems = [
@@ -161,11 +175,11 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed = false, 
             isCollapsed && !mobileOpen ? 'lg:justify-center p-2.5' : 'gap-3 p-4'
           }`}>
             <div className="w-10 h-10 rounded-lg bg-[#DBEAFE] text-primary font-bold text-sm flex items-center justify-center shrink-0">
-              AR
+              {userInitials}
             </div>
             {(!isCollapsed || mobileOpen) && (
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-semibold text-text truncate">Amara Reyes</span>
+                <span className="text-xs font-semibold text-text truncate">{userFullName}</span>
                 <span className="text-[11px] text-muted mt-0.5 truncate">Inventory Manager</span>
               </div>
             )}

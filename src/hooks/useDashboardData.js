@@ -189,7 +189,7 @@ function buildSaleKpis(salesRecords) {
 
   const pctChange = (current, previous) => {
     if (previous === 0) return current > 0 ? 100 : 0;
-    return Math.abs(((current - previous) / previous) * 100);
+    return Number(Math.abs(((current - previous) / previous) * 100).toFixed(2));
   };
   const direction = (current, previous) => (current >= previous ? 'up' : 'down');
 
@@ -256,7 +256,7 @@ function buildKpiArray(productKpis, saleKpis) {
       id: 'todays-profit', label: "Today's Profit", value: saleKpis.profitToday, icon: 'trending-up', type: 'currency',
       trend: { value: saleKpis.pctProfitToday, direction: saleKpis.dirProfitToday, label: 'vs yesterday' },
     },
-    { id: 'weekly-profit', label: 'Weekly Profit', value: saleKpis.weeklyProfit, icon: 'bar-chart', type: 'currency' },
+    { id: 'weekly-profit', label: 'Weekly Profit', value: saleKpis.monthlyProfit, icon: 'bar-chart', type: 'currency' },
     { id: 'monthly-profit', label: 'Monthly Profit', value: saleKpis.monthlyProfit, icon: 'bar-chart', type: 'currency' },
     {
       id: 'low-stock', label: 'Low Stock Products', value: productKpis.lowStock, icon: 'alert-triangle', type: 'count',
@@ -279,7 +279,7 @@ function buildKpiArray(productKpis, saleKpis) {
  *  - Low Stock & Unsold Products        → live product API × sale records
  *  - All other KPIs & ALL charts        → dummyData (sale records)
  */
-export function useDashboardData() {
+export function useDashboardData(externalSalesData) {
   const [data, setData] = useState(initialState);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -298,13 +298,13 @@ export function useDashboardData() {
       const rawProducts = Array.isArray(productsResponse)
         ? productsResponse
         : Array.isArray(productsResponse?.data)
-        ? productsResponse.data
-        : Array.isArray(productsResponse?.products)
-        ? productsResponse.products
-        : [];
+          ? productsResponse.data
+          : Array.isArray(productsResponse?.products)
+            ? productsResponse.products
+            : [];
 
-      // All chart & KPI data computed from dummyData (sale records)
-      const salesRecords = dummyData;
+      // All chart & KPI data computed from external sales data or dummyData (sale records)
+      const salesRecords = externalSalesData && externalSalesData.length > 0 ? externalSalesData : dummyData;
 
       const productKpis = buildProductKpis(rawProducts, salesRecords);
       const saleKpis = buildSaleKpis(salesRecords);
@@ -323,7 +323,7 @@ export function useDashboardData() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [externalSalesData]);
 
   useEffect(() => {
     fetchAll();

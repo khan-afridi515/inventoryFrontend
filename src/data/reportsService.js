@@ -81,11 +81,28 @@ function generateDateRange(start, end) {
 }
 
 function buildSummary(records, period, date) {
-  const totalProductsSold = records.reduce((sum, item) => sum + item.qtySold, 0);
-  const purchaseValue = records.reduce((sum, item) => sum + item.totalCost, 0);
-  const sellingValue = records.reduce((sum, item) => sum + item.totalRevenue, 0);
-  const profit = records.reduce((sum, item) => sum + Math.max(item.profitLoss, 0), 0);
-  const loss = records.reduce((sum, item) => sum + Math.max(-item.profitLoss, 0), 0);
+  let targetRecords = records;
+  if (period === 'daily') {
+    targetRecords = records.filter(r => r.date === date);
+  } else if (period === 'weekly') {
+    const end = parseISODate(date);
+    const start = new Date(end);
+    start.setDate(end.getDate() - 6);
+    const startIso = start.toISOString().split('T')[0];
+    const endIso = end.toISOString().split('T')[0];
+    targetRecords = records.filter(r => r.date >= startIso && r.date <= endIso);
+  } else if (period === 'monthly') {
+    const end = parseISODate(date);
+    const monthStartIso = new Date(end.getFullYear(), end.getMonth(), 1).toISOString().split('T')[0];
+    const monthEndIso = new Date(end.getFullYear(), end.getMonth() + 1, 0).toISOString().split('T')[0];
+    targetRecords = records.filter(r => r.date >= monthStartIso && r.date <= monthEndIso);
+  }
+
+  const totalProductsSold = targetRecords.reduce((sum, item) => sum + item.qtySold, 0);
+  const purchaseValue = targetRecords.reduce((sum, item) => sum + item.totalCost, 0);
+  const sellingValue = targetRecords.reduce((sum, item) => sum + item.totalRevenue, 0);
+  const profit = targetRecords.reduce((sum, item) => sum + Math.max(item.profitLoss, 0), 0);
+  const loss = targetRecords.reduce((sum, item) => sum + Math.max(-item.profitLoss, 0), 0);
 
   return {
     date: formatPeriodLabel(period, date),
@@ -159,7 +176,24 @@ function buildChart(records, period, valueKey, date) {
 }
 
 function buildSalesTable(records, period, date) {
-  const rowsByProduct = records.reduce((acc, item) => {
+  let targetRecords = records;
+  if (period === 'daily') {
+    targetRecords = records.filter(r => r.date === date);
+  } else if (period === 'weekly') {
+    const end = parseISODate(date);
+    const start = new Date(end);
+    start.setDate(end.getDate() - 6);
+    const startIso = start.toISOString().split('T')[0];
+    const endIso = end.toISOString().split('T')[0];
+    targetRecords = records.filter(r => r.date >= startIso && r.date <= endIso);
+  } else if (period === 'monthly') {
+    const end = parseISODate(date);
+    const monthStartIso = new Date(end.getFullYear(), end.getMonth(), 1).toISOString().split('T')[0];
+    const monthEndIso = new Date(end.getFullYear(), end.getMonth() + 1, 0).toISOString().split('T')[0];
+    targetRecords = records.filter(r => r.date >= monthStartIso && r.date <= monthEndIso);
+  }
+
+  const rowsByProduct = targetRecords.reduce((acc, item) => {
     const key = item.product;
     if (!acc[key]) {
       acc[key] = {
@@ -186,9 +220,9 @@ function buildSalesTable(records, period, date) {
   };
 }
 
-function buildReportData(period, date) {
+export function buildReportData(period, date, sourceData = dummyData) {
   const bounds = getPeriodBounds(period, date);
-  const records = dummyData.filter((item) => isWithinBounds(item.date, bounds));
+  const records = sourceData.filter((item) => item.date && isWithinBounds(item.date, bounds));
 
   return {
     summary: buildSummary(records, period, date),

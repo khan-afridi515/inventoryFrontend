@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 
 // Layout Components
 import Sidebar from './component/sidebar';
@@ -22,6 +22,8 @@ import Login from './pages/Auth/signin';
 import Signup from './pages/Auth/signUp';
 import VerifyEmail from './pages/Auth/verifyemail';
 import Redirect from './redirect';
+import { NotificationProvider, useNotifications } from './context/notificationContext';
+
 
 const initialNotifications = [
   {
@@ -77,37 +79,100 @@ const initialNotifications = [
 ];
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = React.useState('dashboard');
 
-  // Load initial notifications from LocalStorage or fallback to default
-  const [notifications, setNotifications] = useState(() => {
-    const saved = localStorage.getItem('app_notifications');
-    return saved ? JSON.parse(saved) : initialNotifications;
-  });
+  // Fetch notifications from backend on mount and initialize socket
+  // useEffect(() => {
+  //   let mounted = true;
 
-  // Calculate unread count dynamically
-  const unreadCount = notifications.filter(n => n.isUnread).length;
+  //   (async () => {
+  //     try {
+  //       const data = await ebayNotifications();
+  //       const records = Array.isArray(data) ? data : (Array.isArray(data.notifications) ? data.notifications : []);
+  //       const mapped = records.map((rec) => {
+  //         const id = rec.orderId || rec.id || rec._id || `${rec.eventDate || Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  //         const items = rec.items || rec.skuItems || [];
+  //         const units = items.reduce((s, it) => s + (it.quantity || it.qty || 1), 0);
+  //         const productName = items.length ? (items[0].title || items[0].name || items[0].sku || items.map(i => i.title || i.name).join(', ')) : (rec.productName || 'Product');
+  //         const remainingStock = rec.remainingStock ?? '-';
+  //         const time = rec.eventDate ? formatShortDate(rec.eventDate) : 'Today';
+  //         return {
+  //           id,
+  //           units,
+  //           productName,
+  //           action: 'sold',
+  //           remainingStock,
+  //           time,
+  //           isUnread: true,
+  //           type: 'Sales'
+  //         };
+  //       });
 
-  // Persist notifications to LocalStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('app_notifications', JSON.stringify(notifications));
-  }, [notifications]);
+  //       if (mounted && mapped.length > 0) {
+  //         setNotifications(prev => {
+  //           // prepend new ones not already present
+  //           const deduped = mapped.filter(m => !prev.some(p => p.id === m.id));
+  //           return [...deduped, ...prev];
+  //         });
+  //       }
+  //     } catch (err) {
+  //       // silent fail; backend may be unavailable
+  //       console.warn('Failed loading notifications', err);
+  //     }
+  //   })();
+
+  //   // initialize socket client and subscribe to productSold events
+  //   // const socket = initializeSocketClient(API_BASE_URL || window.location.origin);
+  //   const unsubscribe = subscribeProductSold((payload) => {
+  //     try {
+  //       const id = payload.orderId || `${payload.eventDate || Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+  //       const items = payload.items || payload.skuItems || [];
+  //       const units = items.reduce((s, it) => s + (it.quantity || it.qty || 1), 0);
+  //       const productName = items.length ? (items[0].title || items[0].name || items[0].sku || items.map(i => i.title || i.name).join(', ')) : (payload.productName || payload.buyer || 'Product');
+  //       const time = payload.eventDate ? formatShortDate(payload.eventDate) : 'Just now';
+  //       const newNotif = {
+  //         id,
+  //         units,
+  //         productName,
+  //         action: 'sold',
+  //         remainingStock: '-',
+  //         time,
+  //         isUnread: true,
+  //         type: 'Sales'
+  //       };
+  //       setNotifications(prev => [newNotif, ...prev]);
+  //     } catch (e) {
+  //       console.warn('Error handling productSold payload', e);
+  //     }
+  //   });
+
+  //   return () => {
+  //     mounted = false;
+  //     if (unsubscribe) unsubscribe();
+  //     disconnectSocket();
+  //   };
+  // }, []);
 
   return (
     <Router>
-      <AppContent 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        notifications={notifications} 
-        setNotifications={setNotifications} 
-        unreadCount={unreadCount} 
-      />
+      <NotificationProvider>
+        <AppContent activeTab={activeTab} setActiveTab={setActiveTab} />
+      </NotificationProvider>
     </Router>
   );
 }
 
-function AppContent({ activeTab, setActiveTab, notifications, setNotifications, unreadCount }) {
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
+function AppContent({ activeTab, setActiveTab }) {
   const location = useLocation();
+  const { notifications, unreadCount } = useNotifications();
 
   // Hide the global sidebar and navbar for auth routes
   const hideLayout = 
@@ -121,11 +186,7 @@ function AppContent({ activeTab, setActiveTab, notifications, setNotifications, 
       
       {/* Sidebar rendered conditionally */}
       {!hideLayout && (
-        <Sidebar 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-          unreadCount={unreadCount} 
-        />
+        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} unreadCount={unreadCount} />
       )}
 
       {/* Main Content Area */}
@@ -133,41 +194,35 @@ function AppContent({ activeTab, setActiveTab, notifications, setNotifications, 
         
         {/* Navbar rendered conditionally */}
         {!hideLayout && (
-          <Navbar 
-            activeTab={activeTab} 
-            setActiveTab={setActiveTab} 
-            unreadCount={unreadCount} 
-          />
+          <Navbar activeTab={activeTab} setActiveTab={setActiveTab} unreadCount={unreadCount} />
         )}
 
         <main className={hideLayout ? 'min-h-screen' : 'page-content min-h-[calc(100vh-64px)]'}>
           <Routes>
             {/* Core Dashboard & General Pages */}
-            <Route path="/" element={<Dashboard setActiveTab={setActiveTab} />} />
-            <Route path="/home" element={<Home setActiveTab={setActiveTab} />} />
+            <Route path="/" element={<ProtectedRoute><Dashboard setActiveTab={setActiveTab} /></ProtectedRoute>} />
+            <Route path="/home" element={<ProtectedRoute><Home setActiveTab={setActiveTab} /></ProtectedRoute>} />
             
             {/* Product Management */}
-            <Route path="/products" element={<Product setActiveTab={setActiveTab} />} />
-            <Route path="/add-product" element={<AddProduct setActiveTab={setActiveTab} />} />
-            <Route path="/update-product/:id" element={<UpdateProduct setActiveTab={setActiveTab} />} />
-            <Route path="/performance" element={<ProductPerformance setActiveTab={setActiveTab} />} />
+            <Route path="/products" element={<ProtectedRoute><Product setActiveTab={setActiveTab} /></ProtectedRoute>} />
+            <Route path="/add-product" element={<ProtectedRoute><AddProduct setActiveTab={setActiveTab} /></ProtectedRoute>} />
+            <Route path="/update-product/:id" element={<ProtectedRoute><UpdateProduct setActiveTab={setActiveTab} /></ProtectedRoute>} />
+            <Route path="/performance" element={<ProtectedRoute><ProductPerformance setActiveTab={setActiveTab} /></ProtectedRoute>} />
 
             {/* Sales & Analytics */}
-            <Route path="/sales" element={<Sales setActiveTab={setActiveTab} />} />
-            <Route path="/reports" element={<Report />} />
+            <Route path="/sales" element={<ProtectedRoute><Sales setActiveTab={setActiveTab} /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute><Report /></ProtectedRoute>} />
 
             {/* Notifications & Settings */}
-            <Route 
-              path="/notifications" 
+            <Route
+              path="/notifications"
               element={
-                <Notifications 
-                  setActiveTab={setActiveTab} 
-                  notifications={notifications}
-                  setNotifications={setNotifications}
-                />
-              } 
+                <ProtectedRoute>
+                  <Notifications setActiveTab={setActiveTab} />
+                </ProtectedRoute>
+              }
             />
-            <Route path="/settings" element={<Settings setActiveTab={setActiveTab} />} />
+            <Route path="/settings" element={<ProtectedRoute><Settings setActiveTab={setActiveTab} /></ProtectedRoute>} />
 
             {/* Authentication Routes (Layout Hidden) */}
             <Route path="/login" element={<Login />} />

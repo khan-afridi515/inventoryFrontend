@@ -1,5 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useDashboardData } from '../../hooks/useDashboardData';
+import { ebayAuth } from '../../context/ebayContext';
+import { useAuth } from '../../context/authContext';
 import { config } from '../../config/env';
 import { DashboardHeader } from '../../component/dashboard/layout/DashboardHeader';
 import { DashboardLayout } from '../../component/dashboard/layout/DashboardLayout';
@@ -37,33 +39,55 @@ function DashboardError({ message, onRetry }) {
 }
 
 function Dashboard({ setActiveTab }) {
+  const { user } = useAuth();
 
+  const { ebayData, getEbayOrders } = ebayAuth();
 
   useEffect(() => {
     if (setActiveTab) setActiveTab('dashboard');
   }, [setActiveTab]);
 
-  const { data, loading, error, refetch } = useDashboardData();
+  useEffect(() => {
+    getEbayOrders();
+  }, []);
+
+  const enrichedEbayData = useMemo(() => {
+    if (!ebayData) return null;
+    return ebayData.map(item => {
+      const totalCost = Number(item.qtySold || 0) * Number(item.unitPurchase || 0);
+      const totalRevenue = Number(item.qtySold || 0) * Number(item.unitSelling || 0);
+      const profitLoss = totalRevenue - totalCost;
+      // Extract standard YYYY-MM-DD date if present, otherwise default to today (or handle accordingly)
+      let standardDate = item.date;
+      if (standardDate && standardDate.includes('T')) {
+         standardDate = standardDate.split('T')[0];
+      } else if (!standardDate) {
+         // Fallback to today's date if no date is provided by API so it appears in 'Sold Today'
+         standardDate = new Date().toISOString().split('T')[0];
+      }
+      return { ...item, totalCost, totalRevenue, profitLoss, date: standardDate };
+    });
+  }, [ebayData]);
+
+  const { data, loading, error, refetch } = useDashboardData(enrichedEbayData);
 
   const handleEbay = () => {
     const { clientId, ruName } = config;
-    console.log('Connecting eBay with clientId and ruName', { clientId, ruName });
 
+
+    //check both scopes for production
     const scopes = [
       'https://api.ebay.com/oauth/api_scope/sell.fulfillment.readonly',
       'https://api.ebay.com/oauth/api_scope/sell.fulfillment',
     ];
 
-    console.log("clinetId", clientId, "ruName", ruName);
     const scope = scopes.join(' ');
     const state = crypto.randomUUID();
 
     // handleEbay
     localStorage.setItem('ebay_state', state);
 
-    console.log("Generated state:", state);
-    console.log("Stored state:", localStorage.getItem("ebay_state"));
-
+    // changing https url, client id, redirect(ruName), check state
     const url =
       `https://auth.sandbox.ebay.com/oauth2/authorize` +
       `?client_id=${clientId}` +
@@ -73,9 +97,9 @@ function Dashboard({ setActiveTab }) {
       `&state=${state}`;
 
     window.location.href = url;
-    console.log("Before redirect:", window.location.origin);
+
   }
-  console.log("Before redirect:", window.location.origin);
+
 
   // Return a single wrapper to ensure layout alignment is always preserved
   return (
@@ -91,7 +115,7 @@ function Dashboard({ setActiveTab }) {
       {/* Show Dashboard when data is successfully loaded */}
       {!loading && !error && data && (
         <DashboardLayout
-          header={<DashboardHeader userName={data.user?.name ?? ''} />}
+          header={<DashboardHeader userName={user?.name ?? data.user?.name ?? ''} />}
           kpis={<KpiGrid kpis={data.kpis} />}
           charts={
             <>

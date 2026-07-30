@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { loginUser, resendOtp, signUpUser, verifyemail } from "../services/authServices"
 import { AUTH_STORAGE_KEYS } from "../api/api";
 
@@ -26,6 +26,17 @@ export const AuthProvider = ({ children }) => {
     const [error, setError] = useState(null);
     const [message, setMessage] = useState("");
 
+    useEffect(() => {
+      const storedUser = localStorage.getItem(AUTH_STORAGE_KEYS.user);
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch {
+          localStorage.removeItem(AUTH_STORAGE_KEYS.user);
+        }
+      }
+    }, []);
+
     const login = async (values) => {
         try {
 
@@ -34,6 +45,7 @@ export const AuthProvider = ({ children }) => {
             setMessage("");
 
             const response = await loginUser(values);
+           
             const token = getAuthToken(response);
             const userData = response?.user ?? response?.loginData?.user ?? response?.data?.user ?? null;
 
@@ -142,9 +154,16 @@ export const AuthProvider = ({ children }) => {
     }
 
 
+    const logout = () => {
+        localStorage.removeItem(AUTH_STORAGE_KEYS.accessToken);
+        localStorage.removeItem(AUTH_STORAGE_KEYS.token);
+        localStorage.removeItem(AUTH_STORAGE_KEYS.user);
+        setUser(null);
+    };
+
     return (
 
-        <AuthContext.Provider value={{ user, loading, error, login, signUp, message, verifyEmail, resendotp}}>
+        <AuthContext.Provider value={{ user, loading, error, login, signUp, message, verifyEmail, resendotp, logout}}>
 
             {children}
 

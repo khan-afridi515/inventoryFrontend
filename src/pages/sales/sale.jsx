@@ -22,12 +22,11 @@ export default function Sales({ setActiveTab }) {
   const [showFilters, setShowFilters] = useState(false);
   const [sortByDate, setSortByDate] = useState('desc');
 
-  const { getEbayOrders, ebayError, ebayMessage } = ebayAuth();
+  const { getEbayOrders, ebayError, ebayMessage, ebayData } = ebayAuth();
 
+  // const dataSource = ebayData && ebayData.length > 0 ? ebayData : salesData;
+  const dataSource = ebayData;
 
-
-
-  const dataSource = salesData;
 
   // Safe Math Helpers (Guards against undefined/NaN values)
   const calculateTotalCost = (qty = 0, purchase = 0) => Number(qty) * Number(purchase);
