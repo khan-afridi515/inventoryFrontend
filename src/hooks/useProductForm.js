@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { INITIAL_PRODUCT_FORM } from '../constants/product.constants';
-import { validateProductForm, validateImageFile } from '../utils/validateProduct';
-import { sanitizeText } from '../utils/sanitize';
+import { validateProductForm, validateImageFile } from '../shared/utils/validateProduct';
+import { sanitizeText } from '../shared/utils/sanitize';
 
 /**
  * Owns all state and behavior for the Add Product form: field values,

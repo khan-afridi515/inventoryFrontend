@@ -1,7 +1,7 @@
 import { Panel } from '../../addProduct/common/Panel';
-import { formatCurrency } from '../../../utils/formatCurrency';
-import { formatShortDate } from '../../../utils/formatDate';
-import { sanitizeText } from '../../../utils/sanitize';
+import { formatCurrency } from '../../../shared/utils/formatCurrency';
+import { formatShortDate } from '../../../shared/utils/formatDate';
+import { sanitizeText } from '../../../shared/utils/sanitize';
 import styles from './RecentActivityFeed.module.css';
 
 /**

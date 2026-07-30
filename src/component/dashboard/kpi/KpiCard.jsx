@@ -6,7 +6,7 @@ import {
   AlertTriangle,
   Clock,
 } from 'lucide-react';
-import { formatCurrency, formatNumber } from '../../../utils/formatCurrency';
+import { formatCurrency, formatNumber } from '../../../shared/utils/formatCurrency';
 import { useKpiTrend } from '../../../hooks/useKpiTrend';
 
 const ICONS = {

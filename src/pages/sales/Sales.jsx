@@ -1,56 +1,24 @@
 import { useState, useMemo, useEffect } from 'react';
-import { 
-  Search, 
-  Download, 
-  TrendingUp, 
-  ShoppingBag, 
-  ArrowUpRight, 
-  ArrowDownRight, 
+import {
+  Search,
+  Download,
+  TrendingUp,
+  ShoppingBag,
+  ArrowUpRight,
+  ArrowDownRight,
   SlidersHorizontal,
-  ChevronDown
+  ChevronDown,
 } from 'lucide-react';
-
-const initialSales = [
-  {
-    id: 1,
-    product: "Wireless Mouse MX2",
-    qtySold: 6,
-    unitPurchase: 8.50,
-    unitSelling: 19.99,
-    date: "2026-07-15"
-  },
-  {
-    id: 2,
-    product: "Cotton Crew T-Shirt",
-    qtySold: 14,
-    unitPurchase: 4.20,
-    unitSelling: 12.99,
-    date: "2026-07-15"
-  },
-  {
-    id: 3,
-    product: "Ceramic Coffee Mug Set",
-    qtySold: 9,
-    unitPurchase: 6.00,
-    unitSelling: 16.99,
-    date: "2026-07-15"
-  },
-  {
-    id: 4,
-    product: "Yoga Mat Premium",
-    qtySold: 5,
-    unitPurchase: 9.50,
-    unitSelling: 24.99,
-    date: "2026-07-15"
-  }
-];
+import { useSalesData } from './hooks/useSalesData';
+import { usePagination } from '../../shared/hooks/usePagination';
+import { Pagination } from '../../shared/components/common/Pagination';
 
 export default function Sales({ setActiveTab }) {
   useEffect(() => {
     if (setActiveTab) setActiveTab('sales');
   }, [setActiveTab]);
 
-  const [salesData] = useState(initialSales);
+  const { data: salesData, loading, error, refetch } = useSalesData();
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [sortByDate, setSortByDate] = useState('desc');
@@ -61,7 +29,7 @@ export default function Sales({ setActiveTab }) {
 
   // Filter and sort sales list
   const filteredSales = useMemo(() => {
-    let result = salesData.filter(item => 
+    let result = salesData.filter((item) =>
       item.product.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -74,28 +42,60 @@ export default function Sales({ setActiveTab }) {
     return result;
   }, [salesData, searchTerm, sortByDate]);
 
-  // Dynamic KPI Metric Totals
+  // Pagination operates on the filtered/sorted set — so page numbers,
+  // "showing X of Y", etc. always reflect the current search, not the
+  // full 3-month dataset.
+  const pagination = usePagination(filteredSales, 10);
+  const { resetToFirstPage } = pagination;
+
+  // A new search or sort order changes what "page 1" even means, so
+  // jump back to it rather than leaving the person stranded on, say,
+  // page 12 of a 2-row search result.
+  useEffect(() => {
+    resetToFirstPage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, sortByDate]);
+
+  // Dynamic KPI Metric Totals — always computed from whatever rows are
+  // currently visible (full 3-month dataset when unfiltered, matching
+  // subset when searched). No hardcoded fallback numbers anymore: with
+  // the real 3-month dataset behind this page, "unfiltered" IS the
+  // real total, not a placeholder.
   const metrics = useMemo(() => {
-    const isFiltered = searchTerm !== '';
     const totalSalesQty = filteredSales.reduce((acc, curr) => acc + curr.qtySold, 0);
-    const totalRevenue = filteredSales.reduce((acc, curr) => acc + calculateTotalRevenue(curr.qtySold, curr.unitSelling), 0);
-    const totalCost = filteredSales.reduce((acc, curr) => acc + calculateTotalCost(curr.qtySold, curr.unitPurchase), 0);
+    const totalRevenue = filteredSales.reduce(
+      (acc, curr) => acc + calculateTotalRevenue(curr.qtySold, curr.unitSelling),
+      0
+    );
+    const totalCost = filteredSales.reduce(
+      (acc, curr) => acc + calculateTotalCost(curr.qtySold, curr.unitPurchase),
+      0
+    );
     const netProfit = totalRevenue - totalCost;
 
     return {
-      totalSales: isFiltered ? totalSalesQty : 309,
-      revenue: isFiltered ? totalRevenue : 7088.91,
-      profit: isFiltered ? netProfit : 4373.71,
-      loss: 0.00
+      totalSales: totalSalesQty,
+      revenue: totalRevenue,
+      profit: netProfit,
+      loss: 0.0, // no loss scenarios modeled in the mock dataset yet
     };
-  }, [filteredSales, searchTerm]);
+  }, [filteredSales]);
 
   // Functional CSV Export
   const handleExport = () => {
-    if (filteredSales.length === 0) return alert("No sales records available to export.");
+    if (filteredSales.length === 0) return alert('No sales records available to export.');
 
-    const headers = ["Product", "Qty Sold", "Unit Purchase ($)", "Unit Selling ($)", "Total Cost ($)", "Total Revenue ($)", "Profit/Loss ($)", "Date"];
-    const rows = filteredSales.map(item => {
+    const headers = [
+      'Product',
+      'Qty Sold',
+      'Unit Purchase ($)',
+      'Unit Selling ($)',
+      'Total Cost ($)',
+      'Total Revenue ($)',
+      'Profit/Loss ($)',
+      'Date',
+    ];
+    const rows = filteredSales.map((item) => {
       const cost = calculateTotalCost(item.qtySold, item.unitPurchase);
       const revenue = calculateTotalRevenue(item.qtySold, item.unitSelling);
       const profitLoss = calculateProfitLoss(revenue, cost);
@@ -107,23 +107,37 @@ export default function Sales({ setActiveTab }) {
         cost.toFixed(2),
         revenue.toFixed(2),
         profitLoss.toFixed(2),
-        item.date
+        item.date,
       ];
     });
 
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    const csvContent =
+      'data:text/csv;charset=utf-8,' +
+      [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `sales_report_${new Date().toISOString().split('T')[0]}.csv`);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `sales_report_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
+  if (loading) {
+    return <div className="p-6 text-[#64748B]">Loading sales…</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <p className="font-semibold text-[#EF4444]">Couldn't load sales data: {error}</p>
+        <button onClick={refetch}>Retry</button>
+      </div>
+    );
+  }
+
   return (
-    <div className="dashboard-page-container font-outfit p-6  px-6 lg:px-8 pt-1 pb-5 -mt-2" >
-      
+    <div className="dashboard-page-container font-outfit p-6  px-6 lg:px-8 pt-1 pb-5 -mt-2">
       {/* Top Header Section */}
       <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between mb-6">
         <div>
@@ -144,7 +158,6 @@ export default function Sales({ setActiveTab }) {
 
       {/* KPI Cards Row - Fixed Overflow & Preserved w-60 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        
         {/* Total Sales Card */}
         <div className="bg-white border border-[#E2E8F0] rounded-[20px] p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex flex-col justify-between h-27.5 w-57">
           <div className="flex items-center justify-between">
@@ -196,16 +209,13 @@ export default function Sales({ setActiveTab }) {
             ${metrics.loss.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </h2>
         </div>
-
       </div>
 
       {/* Main Table Structure Container */}
       <div className="bg-white border border-[#E2E8F0] rounded-3xl shadow-[0_1px_2px_rgba(15,23,42,0.04)] overflow-hidden">
-        
         {/* Search and Filters Bar */}
         <div className="p-4 border-b border-[#F1F5F9] bg-white flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row items-center gap-3">
-            
             {/* Search Input Box */}
             <div className="relative w-full sm:w-65">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
@@ -256,21 +266,25 @@ export default function Sales({ setActiveTab }) {
                 <th className="py-3.5 px-5 text-right font-normal">Total Cost</th>
                 <th className="py-3.5 px-5 text-right font-normal">Total Revenue</th>
                 <th className="py-3.5 px-5 text-right font-normal">Profit / Loss</th>
-                <th 
+                <th
                   className="py-3.5 px-5 text-right cursor-pointer select-none font-normal"
                   onClick={() => setSortByDate(sortByDate === 'desc' ? 'asc' : 'desc')}
                 >
                   <span className="inline-flex items-center justify-end gap-1">
                     Date
-                    <ChevronDown className={`h-3.5 w-3.5 text-[#64748B] transition-transform ${sortByDate === 'asc' ? 'rotate-180' : ''}`} />
+                    <ChevronDown
+                      className={`h-3.5 w-3.5 text-[#64748B] transition-transform ${
+                        sortByDate === 'asc' ? 'rotate-180' : ''
+                      }`}
+                    />
                   </span>
                 </th>
               </tr>
             </thead>
-            
+
             <tbody className="divide-y divide-[#F1F5F9] text-[14px]">
-              {filteredSales.length > 0 ? (
-                filteredSales.map((item) => {
+              {pagination.pageItems.length > 0 ? (
+                pagination.pageItems.map((item) => {
                   const totalCost = calculateTotalCost(item.qtySold, item.unitPurchase);
                   const totalRevenue = calculateTotalRevenue(item.qtySold, item.unitSelling);
                   const profitLoss = calculateProfitLoss(totalRevenue, totalCost);
@@ -280,11 +294,21 @@ export default function Sales({ setActiveTab }) {
                     <tr key={item.id} className="hover:bg-[#F8FAFC]/50 transition-colors">
                       <td className="py-4 px-5 font-normal text-[#0F172A]">{item.product}</td>
                       <td className="py-4 px-5 text-right font-normal text-[#334155]">{item.qtySold}</td>
-                      <td className="py-4 px-5 text-right font-normal text-[#64748B]">${item.unitPurchase.toFixed(2)}</td>
-                      <td className="py-4 px-5 text-right font-normal text-[#64748B]">${item.unitSelling.toFixed(2)}</td>
+                      <td className="py-4 px-5 text-right font-normal text-[#64748B]">
+                        ${item.unitPurchase.toFixed(2)}
+                      </td>
+                      <td className="py-4 px-5 text-right font-normal text-[#64748B]">
+                        ${item.unitSelling.toFixed(2)}
+                      </td>
                       <td className="py-4 px-5 text-right font-normal text-[#334155]">${totalCost.toFixed(2)}</td>
-                      <td className="py-4 px-5 text-right font-normal text-[#334155]">${totalRevenue.toFixed(2)}</td>
-                      <td className={`py-4 px-5 text-right font-normal ${isProfit ? 'text-[#10B981]' : 'text-[#EF4444]'}`}>
+                      <td className="py-4 px-5 text-right font-normal text-[#334155]">
+                        ${totalRevenue.toFixed(2)}
+                      </td>
+                      <td
+                        className={`py-4 px-5 text-right font-normal ${
+                          isProfit ? 'text-[#10B981]' : 'text-[#EF4444]'
+                        }`}
+                      >
                         {isProfit ? `+$${profitLoss.toFixed(2)}` : `-$${Math.abs(profitLoss).toFixed(2)}`}
                       </td>
                       <td className="py-4 px-5 text-right font-normal text-[#64748B]">{item.date}</td>
@@ -302,8 +326,19 @@ export default function Sales({ setActiveTab }) {
           </table>
         </div>
 
+        <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          startIndex={pagination.startIndex}
+          endIndex={pagination.endIndex}
+          totalItems={pagination.totalItems}
+          pageSize={pagination.pageSize}
+          onPageChange={pagination.goToPage}
+          onPrevious={pagination.prevPage}
+          onNext={pagination.nextPage}
+          onPageSizeChange={pagination.changePageSize}
+        />
       </div>
-
     </div>
   );
 }

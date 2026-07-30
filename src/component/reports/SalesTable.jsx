@@ -1,6 +1,6 @@
 import { Panel } from '../../component/addProduct/common/Panel';
-import { formatCurrency, formatNumber } from '../../utils/formatCurrency';
-import { sanitizeText } from '../../utils/sanitize';
+import { formatCurrency, formatNumber } from '../../shared/utils/formatCurrency';
+import { sanitizeText } from '../../shared/utils/sanitize';
 
 /**
  * @param {{ table: { date: string, rows: Array<object>, overallProfitLoss: number } }} props

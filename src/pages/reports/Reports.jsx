@@ -43,7 +43,6 @@ function Reports() {
 
   return (
     <div>
-
       <div className="mx-auto max-w-6xl p-6">
         <ReportsHeader onAction={handleReportAction} />
         <ReportTabs activePeriod={period} onChange={setPeriod} />

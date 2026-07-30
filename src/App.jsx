@@ -6,7 +6,7 @@ import Home from './pages/home';
 import Product from './pages/product/products';
 import AddProduct from './pages/addProduct/AddProduct';
 import Dashboard from './pages/dashboard/Dashboard';
-import Sales from './pages/sales/sale';
+import Sales from './pages/sales/Sales';
 import Notifications from './pages/notification/notification';
 import Settings from './pages/setting/setting';
 import ProductPerformance from './pages/performance/productPerformance';
