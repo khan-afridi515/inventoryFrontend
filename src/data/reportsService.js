@@ -1,6 +1,6 @@
 import { config } from '../config/env';
 import { dummyData } from './dummyData';
-import { formatShortDate, formatWeekdayShort } from '../utils/formatDate';
+import { formatShortDate, formatWeekdayShort } from '../shared/utils/formatDate';
 
 // Same pattern as dashboardService.js: this is the ONLY module that
 // knows whether report data comes from mocks or a real API. Every
@@ -241,6 +241,12 @@ async function request(path) {
     throw new Error(`Request to ${path} failed with status ${res.status}`);
   }
   return res.json();
+}
+
+/** Records for the given period+date, computed once and reused by every method below. */
+function getRecordsForPeriod(period, date) {
+  const { start, end } = getDateRangeForPeriod(period, date);
+  return { records: filterRecordsInRange(mockSalesRecords, start, end), start, end };
 }
 
 export const reportsService = {

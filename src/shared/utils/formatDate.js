@@ -1,4 +1,4 @@
-import { LOCALE } from '../constants/dashboard.constants';
+import { LOCALE } from '../../constants/app.constants';
 
 /**
  * Formats an ISO date string into a short label, e.g. "Jul 15, 2026".

@@ -9,7 +9,7 @@ import {
 } from 'recharts';
 import { Panel } from '../../component/addProduct/common/Panel';
 import { CHART_COLORS } from '../../constants/dashboard.constants';
-import { formatCurrency } from '../../utils/formatCurrency';
+import { formatCurrency } from '../../shared/utils/formatCurrency';
 
 function CustomTick({ x, y, payload, multiline }) {
   const label = String(payload.value || '');

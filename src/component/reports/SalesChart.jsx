@@ -9,7 +9,7 @@ import {
 } from 'recharts';
 import { Panel } from '../../component/addProduct/common/Panel';
 import { CHART_COLORS } from '../../constants/dashboard.constants';
-import { formatCurrency } from '../../utils/formatCurrency';
+import { formatCurrency } from '../../shared/utils/formatCurrency';
 
 /**
  * @param {{ data: Array<{ day: string, amount: number }> }} props

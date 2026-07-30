@@ -1,4 +1,4 @@
-import { MAX_IMAGE_SIZE_BYTES, ACCEPTED_IMAGE_TYPES } from '../constants/product.constants';
+import { MAX_IMAGE_SIZE_BYTES, ACCEPTED_IMAGE_TYPES } from '../../constants/product.constants';
 
 const isBlank = (value) => !value || value.trim().length === 0;
 

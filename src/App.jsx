@@ -7,13 +7,11 @@ import Navbar from './component/Navbar';
 
 // Page Components
 import Home from './pages/home';
-import Dashboard from './pages/dashboard/Dashboard';
+// import Dashboard from './pages/dashboard/Dashboard';
 import Product from './pages/product/products';
 import AddProduct from './pages/addProduct/AddProduct';
-import UpdateProduct from './pages/update/update';
-import Sales from './pages/sales/sale';
-import ProductPerformance from './pages/performance/productPerformance';
-import Report from './pages/reports/Reports';
+import Dashboard from './pages/dashboard/Dashboard';
+import Sales from './pages/sales/Sales';
 import Notifications from './pages/notification/notification';
 import Settings from './pages/setting/setting';
 
@@ -23,6 +21,10 @@ import Signup from './pages/Auth/signUp';
 import VerifyEmail from './pages/Auth/verifyemail';
 import Redirect from './redirect';
 import { NotificationProvider, useNotifications } from './context/notificationContext';
+import UpdateProduct from './pages/update/update';
+import ProductPerformance from './pages/performance/productPerformance';
+import Report from './pages/reports/Reports';
+// import { updateProduct } from './services/productServices';
 
 
 const initialNotifications = [

@@ -1,4 +1,4 @@
-import { CURRENCY, LOCALE } from '../constants/dashboard.constants';
+import { CURRENCY, LOCALE } from '../../constants/app.constants';
 
 /**
  * Formats a number as currency consistently across the whole app.

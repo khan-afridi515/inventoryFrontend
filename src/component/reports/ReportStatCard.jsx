@@ -1,4 +1,4 @@
-import { formatCurrency, formatNumber } from '../../utils/formatCurrency';
+import { formatCurrency, formatNumber } from '../../shared/utils/formatCurrency';
 
 const TONE_CLASSES = {
   positive: 'text-positive',

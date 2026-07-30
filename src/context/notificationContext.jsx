@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { ebayNotifications } from '../services/ebayServices';
 import { initializeSocketClient, subscribeProductSold, disconnectSocket } from '../socket';
 import { API_BASE_URL } from '../api/api';
-import { formatShortDate } from '../utils/formatDate';
+import { formatShortDate } from '../shared/utils/formatDate';
 
 const NotificationContext = createContext(null);
 
