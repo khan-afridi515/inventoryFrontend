@@ -24,15 +24,6 @@ export function ProductDetailsPanel({ formData, errors, setField }) {
           required
           error={errors.name}
         />
-        <TextField
-          id="sku"
-          label="SKU"
-          value={formData.sku}
-          onChange={(v) => setField('sku', v)}
-          placeholder="e.g. SKU-EL-1001"
-          required
-          error={errors.sku}
-        />
 
         <SelectField
           id="category"
@@ -87,14 +78,14 @@ export function ProductDetailsPanel({ formData, errors, setField }) {
           error={errors.currentQuantity}
         />
         <TextField
-          id="minimumStock"
-          label="Minimum Stock"
+          id="minimumQuantity"
+          label="Minimum Quantity"
           type="number"
-          value={formData.minimumStock}
-          onChange={(v) => setField('minimumStock', v)}
+          value={formData.minimumQuantity}
+          onChange={(v) => setField('minimumQuantity', v)}
           placeholder="0"
           required
-          error={errors.minimumStock}
+          error={errors.minimumQuantity}
         />
 
         <div className="md:col-span-2">

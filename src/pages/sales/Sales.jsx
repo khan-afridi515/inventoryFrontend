@@ -1,4 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
+<<<<<<< HEAD:src/pages/sales/Sales.jsx
+=======
+import { ebayAuth } from '../../context/ebayContext';
+import { dummyData } from '../../data/dummyData';
+>>>>>>> 2e231c46dc7a90b12f6c6e0eebc3aad5dba4e778:src/pages/sales/sale.jsx
 import {
   Search,
   Download,
@@ -9,38 +14,59 @@ import {
   SlidersHorizontal,
   ChevronDown,
 } from 'lucide-react';
+<<<<<<< HEAD:src/pages/sales/Sales.jsx
 import { useSalesData } from './hooks/useSalesData';
 import { usePagination } from '../../shared/hooks/usePagination';
 import { Pagination } from '../../shared/components/common/Pagination';
+=======
+>>>>>>> 2e231c46dc7a90b12f6c6e0eebc3aad5dba4e778:src/pages/sales/sale.jsx
 
 export default function Sales({ setActiveTab }) {
   useEffect(() => {
     if (setActiveTab) setActiveTab('sales');
   }, [setActiveTab]);
 
+<<<<<<< HEAD:src/pages/sales/Sales.jsx
   const { data: salesData, loading, error, refetch } = useSalesData();
+=======
+  const [salesData] = useState(dummyData);
+>>>>>>> 2e231c46dc7a90b12f6c6e0eebc3aad5dba4e778:src/pages/sales/sale.jsx
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [sortByDate, setSortByDate] = useState('desc');
 
-  const calculateTotalCost = (qty, purchase) => qty * purchase;
-  const calculateTotalRevenue = (qty, selling) => qty * selling;
-  const calculateProfitLoss = (revenue, cost) => revenue - cost;
+  const { getEbayOrders, ebayError, ebayMessage, ebayData } = ebayAuth();
 
-  // Filter and sort sales list
+  // const dataSource = ebayData && ebayData.length > 0 ? ebayData : salesData;
+  const dataSource = ebayData;
+
+
+  // Safe Math Helpers (Guards against undefined/NaN values)
+  const calculateTotalCost = (qty = 0, purchase = 0) => Number(qty) * Number(purchase);
+  const calculateTotalRevenue = (qty = 0, selling = 0) => Number(qty) * Number(selling);
+  const calculateProfitLoss = (revenue = 0, cost = 0) => revenue - cost;
+
+  // Filter and sort sales list cleanly
   const filteredSales = useMemo(() => {
+<<<<<<< HEAD:src/pages/sales/Sales.jsx
     let result = salesData.filter((item) =>
       item.product.toLowerCase().includes(searchTerm.toLowerCase())
     );
+=======
+    let result = (dataSource || []).filter(item => {
+      const productName = item?.product || item?.title || '';
+      return productName.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+>>>>>>> 2e231c46dc7a90b12f6c6e0eebc3aad5dba4e778:src/pages/sales/sale.jsx
 
     result.sort((a, b) => {
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
+      const dateA = new Date(a.date || 0);
+      const dateB = new Date(b.date || 0);
       return sortByDate === 'desc' ? dateB - dateA : dateA - dateB;
     });
 
     return result;
-  }, [salesData, searchTerm, sortByDate]);
+  }, [dataSource, searchTerm, sortByDate]);
 
   // Pagination operates on the filtered/sorted set — so page numbers,
   // "showing X of Y", etc. always reflect the current search, not the
@@ -62,6 +88,7 @@ export default function Sales({ setActiveTab }) {
   // the real 3-month dataset behind this page, "unfiltered" IS the
   // real total, not a placeholder.
   const metrics = useMemo(() => {
+<<<<<<< HEAD:src/pages/sales/Sales.jsx
     const totalSalesQty = filteredSales.reduce((acc, curr) => acc + curr.qtySold, 0);
     const totalRevenue = filteredSales.reduce(
       (acc, curr) => acc + calculateTotalRevenue(curr.qtySold, curr.unitSelling),
@@ -71,13 +98,23 @@ export default function Sales({ setActiveTab }) {
       (acc, curr) => acc + calculateTotalCost(curr.qtySold, curr.unitPurchase),
       0
     );
+=======
+    const totalSalesQty = filteredSales.reduce((acc, curr) => acc + (Number(curr.qtySold) || 0), 0);
+    const totalRevenue = filteredSales.reduce((acc, curr) => acc + calculateTotalRevenue(curr.qtySold, curr.unitSelling), 0);
+    const totalCost = filteredSales.reduce((acc, curr) => acc + calculateTotalCost(curr.qtySold, curr.unitPurchase), 0);
+>>>>>>> 2e231c46dc7a90b12f6c6e0eebc3aad5dba4e778:src/pages/sales/sale.jsx
     const netProfit = totalRevenue - totalCost;
 
     return {
       totalSales: totalSalesQty,
       revenue: totalRevenue,
+<<<<<<< HEAD:src/pages/sales/Sales.jsx
       profit: netProfit,
       loss: 0.0, // no loss scenarios modeled in the mock dataset yet
+=======
+      profit: Math.max(netProfit, 0),
+      loss: Math.max(-netProfit, 0),
+>>>>>>> 2e231c46dc7a90b12f6c6e0eebc3aad5dba4e778:src/pages/sales/sale.jsx
     };
   }, [filteredSales]);
 
@@ -85,6 +122,7 @@ export default function Sales({ setActiveTab }) {
   const handleExport = () => {
     if (filteredSales.length === 0) return alert('No sales records available to export.');
 
+<<<<<<< HEAD:src/pages/sales/Sales.jsx
     const headers = [
       'Product',
       'Qty Sold',
@@ -98,16 +136,31 @@ export default function Sales({ setActiveTab }) {
     const rows = filteredSales.map((item) => {
       const cost = calculateTotalCost(item.qtySold, item.unitPurchase);
       const revenue = calculateTotalRevenue(item.qtySold, item.unitSelling);
+=======
+    const headers = ["Product", "Qty Sold", "Unit Purchase ($)", "Unit Selling ($)", "Total Cost ($)", "Total Revenue ($)", "Profit/Loss ($)", "Date"];
+    const rows = filteredSales.map(item => {
+      const qty = item.qtySold || 0;
+      const purchase = item.unitPurchase || 0;
+      const selling = item.unitSelling || 0;
+
+      const cost = calculateTotalCost(qty, purchase);
+      const revenue = calculateTotalRevenue(qty, selling);
+>>>>>>> 2e231c46dc7a90b12f6c6e0eebc3aad5dba4e778:src/pages/sales/sale.jsx
       const profitLoss = calculateProfitLoss(revenue, cost);
+
       return [
-        `"${item.product}"`,
-        item.qtySold,
-        item.unitPurchase.toFixed(2),
-        item.unitSelling.toFixed(2),
+        `"${item.product || 'Unknown Product'}"`,
+        qty,
+        purchase.toFixed(2),
+        selling.toFixed(2),
         cost.toFixed(2),
         revenue.toFixed(2),
         profitLoss.toFixed(2),
+<<<<<<< HEAD:src/pages/sales/Sales.jsx
         item.date,
+=======
+        item.date || 'N/A'
+>>>>>>> 2e231c46dc7a90b12f6c6e0eebc3aad5dba4e778:src/pages/sales/sale.jsx
       ];
     });
 
@@ -123,6 +176,7 @@ export default function Sales({ setActiveTab }) {
     document.body.removeChild(link);
   };
 
+<<<<<<< HEAD:src/pages/sales/Sales.jsx
   if (loading) {
     return <div className="p-6 text-[#64748B]">Loading sales…</div>;
   }
@@ -138,85 +192,120 @@ export default function Sales({ setActiveTab }) {
 
   return (
     <div className="dashboard-page-container font-outfit p-6  px-6 lg:px-8 pt-1 pb-5 -mt-2">
+=======
+  useEffect(() => {
+    getEbayOrders();
+  }, []);
+
+  return (
+    <div className="dashboard-page-container font-outfit p-6 px-6 lg:px-8 pt-1 pb-5 -mt-2">
+
+>>>>>>> 2e231c46dc7a90b12f6c6e0eebc3aad5dba4e778:src/pages/sales/sale.jsx
       {/* Top Header Section */}
       <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between mb-6">
         <div>
-          <h1 className="text-[32px] font-bold text-[#0F172A] tracking-tight">Sales</h1>
-          <p className="text-[14px] text-[#64748B] mt-0.5 font-normal">
+          <h1 className="text-[32px] font-bold text-text tracking-tight">Sales</h1>
+          <p className="text-[14px] text-muted mt-0.5 font-normal">
             Every completed sale across your catalog.
           </p>
         </div>
 
-        <button
-          onClick={handleExport}
-          className="inline-flex items-center gap-2 px-4 py-2 border border-[#E2E8F0] bg-white rounded-xl text-[14px] font-normal text-[#0F172A] hover:bg-[#F8FAFC] transition shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
-        >
-          <Download className="h-4 w-4 stroke-[1.5]" />
-          <span>Export</span>
-        </button>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <button
+            onClick={handleExport}
+            className="inline-flex items-center gap-2 px-4 py-2 border border-border bg-white rounded-xl text-[14px] font-normal text-text hover:bg-bg transition shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+          >
+            <Download className="h-4 w-4 stroke-[1.5]" />
+            <span>Export</span>
+          </button>
+        </div>
       </div>
 
-      {/* KPI Cards Row - Fixed Overflow & Preserved w-60 */}
+      {/* {(ebayError || ebayMessage) && (
+        <div className="mb-6 rounded-2xl border border-[#E2E8F0] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          {ebayError ? (
+            <p className="text-sm font-medium text-[#EF4444]">{ebayError}</p>
+          ) : (
+            <p className="text-sm font-medium text-[#16A34A]">{ebayMessage}</p>
+          )}
+        </div>
+      )} 
+
+      {/* KPI Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+<<<<<<< HEAD:src/pages/sales/Sales.jsx
+=======
+
+>>>>>>> 2e231c46dc7a90b12f6c6e0eebc3aad5dba4e778:src/pages/sales/sale.jsx
         {/* Total Sales Card */}
-        <div className="bg-white border border-[#E2E8F0] rounded-[20px] p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex flex-col justify-between h-27.5 w-57">
+        <div className="bg-white border border-border rounded-[20px] p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex flex-col justify-between h-27.5">
           <div className="flex items-center justify-between">
-            <span className="text-[14px] font-normal text-[#64748B]">Total Sales</span>
+            <span className="text-[14px] font-normal text-muted">Total Sales</span>
             <div className="w-8 h-8 bg-[#EEF2F6] text-[#2563EB] rounded-lg flex items-center justify-center shrink-0">
               <ShoppingBag className="h-4 w-4 stroke-[1.5]" />
             </div>
           </div>
-          <h2 className="text-[28px] font-semibold text-[#0F172A] tracking-tight leading-none">
+          <h2 className="text-[28px] font-semibold text-text tracking-tight leading-none">
             {metrics.totalSales}
           </h2>
         </div>
 
         {/* Revenue Card */}
-        <div className="bg-white border border-[#E2E8F0] rounded-[20px] p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex flex-col justify-between h-27.5 w-57">
+        <div className="bg-white border border-border rounded-[20px] p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex flex-col justify-between h-27.5">
           <div className="flex items-center justify-between">
-            <span className="text-[14px] font-normal text-[#64748B]">Revenue</span>
+            <span className="text-[14px] font-normal text-muted">Revenue</span>
             <div className="w-8 h-8 bg-[#EEF2F6] text-[#2563EB] rounded-lg flex items-center justify-center shrink-0">
               <TrendingUp className="h-4 w-4 stroke-[1.5]" />
             </div>
           </div>
-          <h2 className="text-[28px] font-semibold text-[#0F172A] tracking-tight leading-none">
+          <h2 className="text-[28px] font-semibold text-text tracking-tight leading-none">
             ${metrics.revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </h2>
         </div>
 
         {/* Profit Card */}
-        <div className="bg-white border border-[#E2E8F0] rounded-[20px] p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex flex-col justify-between h-27.5 w-57">
+        <div className="bg-white border border-border rounded-[20px] p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex flex-col justify-between h-27.5">
           <div className="flex items-center justify-between">
-            <span className="text-[14px] font-normal text-[#64748B]">Profit</span>
+            <span className="text-[14px] font-normal text-muted">Profit</span>
             <div className="w-8 h-8 bg-[#EEF2F6] text-[#2563EB] rounded-lg flex items-center justify-center shrink-0">
               <ArrowUpRight className="h-4 w-4 stroke-[1.5]" />
             </div>
           </div>
-          <h2 className="text-[28px] font-semibold text-[#10B981] tracking-tight leading-none">
+          <h2 className="text-[28px] font-semibold text-positive tracking-tight leading-none">
             ${metrics.profit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </h2>
         </div>
 
         {/* Loss Card */}
-        <div className="bg-white border border-[#E2E8F0] rounded-[20px] p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex flex-col justify-between h-27.5 w-57">
+        <div className="bg-white border border-border rounded-[20px] p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex flex-col justify-between h-27.5">
           <div className="flex items-center justify-between">
-            <span className="text-[14px] font-normal text-[#64748B]">Loss</span>
+            <span className="text-[14px] font-normal text-muted">Loss</span>
             <div className="w-8 h-8 bg-[#EEF2F6] text-[#2563EB] rounded-lg flex items-center justify-center shrink-0">
               <ArrowDownRight className="h-4 w-4 stroke-[1.5]" />
             </div>
           </div>
-          <h2 className="text-[28px] font-semibold text-[#EF4444] tracking-tight leading-none">
+          <h2 className="text-[28px] font-semibold text-negative tracking-tight leading-none">
             ${metrics.loss.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </h2>
         </div>
       </div>
 
+<<<<<<< HEAD:src/pages/sales/Sales.jsx
       {/* Main Table Structure Container */}
       <div className="bg-white border border-[#E2E8F0] rounded-3xl shadow-[0_1px_2px_rgba(15,23,42,0.04)] overflow-hidden">
         {/* Search and Filters Bar */}
         <div className="p-4 border-b border-[#F1F5F9] bg-white flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row items-center gap-3">
             {/* Search Input Box */}
+=======
+      {/* Main Table Container */}
+      <div className="bg-white border border-border rounded-3xl shadow-[0_1px_2px_rgba(15,23,42,0.04)] overflow-hidden">
+
+        {/* Controls Bar */}
+        <div className="p-4 border-b border-[#F1F5F9] bg-white flex flex-col gap-3">
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+
+>>>>>>> 2e231c46dc7a90b12f6c6e0eebc3aad5dba4e778:src/pages/sales/sale.jsx
             <div className="relative w-full sm:w-65">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
               <input
@@ -224,28 +313,26 @@ export default function Sales({ setActiveTab }) {
                 placeholder="Search by product..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-[#E2E8F0] rounded-xl text-[14px] font-normal placeholder-[#94A3B8] focus:outline-none focus:border-[#3B82F6] transition-colors"
+                className="w-full pl-10 pr-4 py-2 border border-border rounded-xl text-[14px] font-normal placeholder-[#94A3B8] focus:outline-none focus:border-primary transition-colors"
               />
             </div>
 
-            {/* Filters Button */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="inline-flex items-center gap-2 px-3.5 py-2 border border-[#E2E8F0] rounded-xl text-[14px] font-normal text-[#0F172A] hover:bg-[#F8FAFC] transition"
+              className="inline-flex items-center gap-2 px-3.5 py-2 border border-border rounded-xl text-[14px] font-normal text-text hover:bg-bg transition"
             >
-              <SlidersHorizontal className="h-4 w-4 text-[#0F172A]" />
+              <SlidersHorizontal className="h-4 w-4 text-text" />
               <span>Filters</span>
             </button>
           </div>
 
-          {/* Filter Dropdown Tray */}
           {showFilters && (
-            <div className="p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl flex items-center gap-3">
-              <span className="text-[13px] font-normal text-[#64748B]">Sort by Date:</span>
+            <div className="p-3 bg-bg border border-border rounded-xl flex items-center gap-3">
+              <span className="text-[13px] font-normal text-muted">Sort by Date:</span>
               <select
                 value={sortByDate}
                 onChange={(e) => setSortByDate(e.target.value)}
-                className="bg-white border border-[#E2E8F0] rounded-lg px-3 py-1.5 text-[13px] font-normal text-[#0F172A] focus:outline-none"
+                className="bg-white border border-border rounded-lg px-3 py-1.5 text-[13px] font-normal text-texts:outline-none"
               >
                 <option value="desc">Newest First</option>
                 <option value="asc">Oldest First</option>
@@ -254,11 +341,11 @@ export default function Sales({ setActiveTab }) {
           )}
         </div>
 
-        {/* Sales Table */}
+        {/* Table View */}
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
             <thead>
-              <tr className="border-b border-[#F1F5F9] bg-white text-[13px] font-normal text-[#64748B]">
+              <tr className="border-b border-[#F1F5F9] bg-white text-[13px] font-normal text-muted">
                 <th className="py-3.5 px-5 font-normal">Product</th>
                 <th className="py-3.5 px-5 text-right font-normal">Qty Sold</th>
                 <th className="py-3.5 px-5 text-right font-normal">Unit Purchase</th>
@@ -272,26 +359,37 @@ export default function Sales({ setActiveTab }) {
                 >
                   <span className="inline-flex items-center justify-end gap-1">
                     Date
+<<<<<<< HEAD:src/pages/sales/Sales.jsx
                     <ChevronDown
                       className={`h-3.5 w-3.5 text-[#64748B] transition-transform ${
                         sortByDate === 'asc' ? 'rotate-180' : ''
                       }`}
                     />
+=======
+                    <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform ${sortByDate === 'asc' ? 'rotate-180' : ''}`} />
+>>>>>>> 2e231c46dc7a90b12f6c6e0eebc3aad5dba4e778:src/pages/sales/sale.jsx
                   </span>
                 </th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-[#F1F5F9] text-[14px]">
+<<<<<<< HEAD:src/pages/sales/Sales.jsx
               {pagination.pageItems.length > 0 ? (
                 pagination.pageItems.map((item) => {
+=======
+              {filteredSales.length > 0 ? (
+                filteredSales.map((item, index) => {
+>>>>>>> 2e231c46dc7a90b12f6c6e0eebc3aad5dba4e778:src/pages/sales/sale.jsx
                   const totalCost = calculateTotalCost(item.qtySold, item.unitPurchase);
                   const totalRevenue = calculateTotalRevenue(item.qtySold, item.unitSelling);
                   const profitLoss = calculateProfitLoss(totalRevenue, totalCost);
                   const isProfit = profitLoss >= 0;
+                  // Use item.id if available, otherwise fallback to product+date+index combination
+                  const uniqueKey = item.id || `${item.product}-${item.date}-${index}`;
 
                   return (
-                    <tr key={item.id} className="hover:bg-[#F8FAFC]/50 transition-colors">
+                    <tr key={uniqueKey} className="hover:bg-[#F8FAFC]/50 transition-colors">
                       <td className="py-4 px-5 font-normal text-[#0F172A]">{item.product}</td>
                       <td className="py-4 px-5 text-right font-normal text-[#334155]">{item.qtySold}</td>
                       <td className="py-4 px-5 text-right font-normal text-[#64748B]">
@@ -301,6 +399,7 @@ export default function Sales({ setActiveTab }) {
                         ${item.unitSelling.toFixed(2)}
                       </td>
                       <td className="py-4 px-5 text-right font-normal text-[#334155]">${totalCost.toFixed(2)}</td>
+<<<<<<< HEAD:src/pages/sales/Sales.jsx
                       <td className="py-4 px-5 text-right font-normal text-[#334155]">
                         ${totalRevenue.toFixed(2)}
                       </td>
@@ -309,9 +408,13 @@ export default function Sales({ setActiveTab }) {
                           isProfit ? 'text-[#10B981]' : 'text-[#EF4444]'
                         }`}
                       >
+=======
+                      <td className="py-4 px-5 text-right font-normal text-[#334155]">${totalRevenue.toFixed(2)}</td>
+                      <td className={`py-4 px-5 text-right font-normal ${isProfit ? 'text-positive' : 'text-negative'}`}>
+>>>>>>> 2e231c46dc7a90b12f6c6e0eebc3aad5dba4e778:src/pages/sales/sale.jsx
                         {isProfit ? `+$${profitLoss.toFixed(2)}` : `-$${Math.abs(profitLoss).toFixed(2)}`}
                       </td>
-                      <td className="py-4 px-5 text-right font-normal text-[#64748B]">{item.date}</td>
+                      <td className="py-4 px-5 text-right font-normal text-muted">{item.date || 'N/A'}</td>
                     </tr>
                   );
                 })

@@ -1,71 +1,243 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+
+// Layout Components
 import Sidebar from './component/sidebar';
 import Navbar from './component/Navbar';
+
+// Page Components
 import Home from './pages/home';
+import Dashboard from './pages/dashboard/Dashboard';
 import Product from './pages/product/products';
 import AddProduct from './pages/addProduct/AddProduct';
+<<<<<<< HEAD
 import Dashboard from './pages/dashboard/Dashboard';
 import Sales from './pages/sales/Sales';
+=======
+import UpdateProduct from './pages/update/update';
+import Sales from './pages/sales/sale';
+import ProductPerformance from './pages/performance/productPerformance';
+import Report from './pages/reports/Reports';
+>>>>>>> 2e231c46dc7a90b12f6c6e0eebc3aad5dba4e778
 import Notifications from './pages/notification/notification';
 import Settings from './pages/setting/setting';
-import ProductPerformance from './pages/performance/productPerformance';
-import Report from './pages/reports/Reports'
 
+// Auth Components & Callbacks
+import Login from './pages/Auth/signin';
+import Signup from './pages/Auth/signUp';
+import VerifyEmail from './pages/Auth/verifyemail';
 import Redirect from './redirect';
+import { NotificationProvider, useNotifications } from './context/notificationContext';
+
+
+const initialNotifications = [
+  {
+    id: 1,
+    units: 3,
+    productName: "Hydrating Face Serum",
+    action: "sold",
+    remainingStock: 74,
+    time: "Today",
+    isUnread: true,
+    type: "Sales"
+  },
+  {
+    id: 2,
+    units: 5,
+    productName: "Yoga Mat Premium",
+    action: "sold",
+    remainingStock: 95,
+    time: "Today",
+    isUnread: true,
+    type: "Sales"
+  },
+  {
+    id: 3,
+    units: 9,
+    productName: "Ceramic Coffee Mug Set",
+    action: "sold",
+    remainingStock: 210,
+    time: "Today",
+    isUnread: true,
+    type: "Sales"
+  },
+  {
+    id: 4,
+    units: 14,
+    productName: "Cotton Crew T-Shirt",
+    action: "sold",
+    remainingStock: 320,
+    time: "Today",
+    isUnread: true,
+    type: "Sales"
+  },
+  {
+    id: 5,
+    units: 6,
+    productName: "Wireless Mouse MX2",
+    action: "sold",
+    remainingStock: 142,
+    time: "Today",
+    isUnread: true,
+    type: "Sales"
+  }
+];
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = React.useState('dashboard');
+
+  // Fetch notifications from backend on mount and initialize socket
+  // useEffect(() => {
+  //   let mounted = true;
+
+  //   (async () => {
+  //     try {
+  //       const data = await ebayNotifications();
+  //       const records = Array.isArray(data) ? data : (Array.isArray(data.notifications) ? data.notifications : []);
+  //       const mapped = records.map((rec) => {
+  //         const id = rec.orderId || rec.id || rec._id || `${rec.eventDate || Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  //         const items = rec.items || rec.skuItems || [];
+  //         const units = items.reduce((s, it) => s + (it.quantity || it.qty || 1), 0);
+  //         const productName = items.length ? (items[0].title || items[0].name || items[0].sku || items.map(i => i.title || i.name).join(', ')) : (rec.productName || 'Product');
+  //         const remainingStock = rec.remainingStock ?? '-';
+  //         const time = rec.eventDate ? formatShortDate(rec.eventDate) : 'Today';
+  //         return {
+  //           id,
+  //           units,
+  //           productName,
+  //           action: 'sold',
+  //           remainingStock,
+  //           time,
+  //           isUnread: true,
+  //           type: 'Sales'
+  //         };
+  //       });
+
+  //       if (mounted && mapped.length > 0) {
+  //         setNotifications(prev => {
+  //           // prepend new ones not already present
+  //           const deduped = mapped.filter(m => !prev.some(p => p.id === m.id));
+  //           return [...deduped, ...prev];
+  //         });
+  //       }
+  //     } catch (err) {
+  //       // silent fail; backend may be unavailable
+  //       console.warn('Failed loading notifications', err);
+  //     }
+  //   })();
+
+  //   // initialize socket client and subscribe to productSold events
+  //   // const socket = initializeSocketClient(API_BASE_URL || window.location.origin);
+  //   const unsubscribe = subscribeProductSold((payload) => {
+  //     try {
+  //       const id = payload.orderId || `${payload.eventDate || Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+  //       const items = payload.items || payload.skuItems || [];
+  //       const units = items.reduce((s, it) => s + (it.quantity || it.qty || 1), 0);
+  //       const productName = items.length ? (items[0].title || items[0].name || items[0].sku || items.map(i => i.title || i.name).join(', ')) : (payload.productName || payload.buyer || 'Product');
+  //       const time = payload.eventDate ? formatShortDate(payload.eventDate) : 'Just now';
+  //       const newNotif = {
+  //         id,
+  //         units,
+  //         productName,
+  //         action: 'sold',
+  //         remainingStock: '-',
+  //         time,
+  //         isUnread: true,
+  //         type: 'Sales'
+  //       };
+  //       setNotifications(prev => [newNotif, ...prev]);
+  //     } catch (e) {
+  //       console.warn('Error handling productSold payload', e);
+  //     }
+  //   });
+
+  //   return () => {
+  //     mounted = false;
+  //     if (unsubscribe) unsubscribe();
+  //     disconnectSocket();
+  //   };
+  // }, []);
 
   return (
     <Router>
-      <div className="min-h-screen bg-slate-50/50">
-        
-        {/* Global Sidebar layout */}
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-
-        {/* Shift layout right to account for the sidebar container */}
-        <div className="pl-0 lg:pl-65">
-          
-          {/* Main Top Header Navigation */}
-          <Navbar activeTab={activeTab} />
-
-          {/* Core App View Container */}
-          <main className="page-content min-h-[calc(100vh-64px)]">
-            <Routes>
-              {/* Fallback layout views */}
-              <Route path="/" element={<Dashboard setActiveTab={setActiveTab} />} />
-              <Route path="/home" element={<Home setActiveTab={setActiveTab} />} />
-              <Route path="/products" element={<Product setActiveTab={setActiveTab} />} />
-              <Route path="/add-product" element={<AddProduct setActiveTab={setActiveTab} />} />
-              <Route path='/reports' element={<Report/>}/>
-              
-              {/* Sales page view layout route - Added setActiveTab prop */}
-              <Route path="/sales" element={<Sales setActiveTab={setActiveTab} />} />
-              {/* Home Page */}
-              {/* <Route path="/" element={<Home />} /> */}
-              
-              {/* Products Page (Mapped to "/products" to match the Sidebar links) */}
-              <Route path="/products" element={<Product />} />
-
-              <Route path="/" element={<Dashboard />} />
-
-              <Route path="/auth/ebay/callback" element={<Redirect />} />
-
-              
-              {/* Product Performance view layout route */}
-              <Route path="/performance" element={<ProductPerformance setActiveTab={setActiveTab} />} />
-
-              {/* Notifications and Settings routes (required for sidebar navigation) */}
-              <Route path="/notifications" element={<Notifications setActiveTab={setActiveTab} />} />
-              <Route path="/settings" element={<Settings setActiveTab={setActiveTab} />} />
-
-
-            </Routes>
-          </main>
-
-        </div>
-      </div>
+      <NotificationProvider>
+        <AppContent activeTab={activeTab} setActiveTab={setActiveTab} />
+      </NotificationProvider>
     </Router>
+  );
+}
+
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
+function AppContent({ activeTab, setActiveTab }) {
+  const location = useLocation();
+  const { notifications, unreadCount } = useNotifications();
+
+  // Hide the global sidebar and navbar for auth routes
+  const hideLayout = 
+    location.pathname === '/login' || 
+    location.pathname === '/signup' || 
+    location.pathname === '/verifyemail' || 
+    location.pathname.startsWith('/auth');
+
+  return (
+    <div className="min-h-screen bg-slate-50/50">
+      
+      {/* Sidebar rendered conditionally */}
+      {!hideLayout && (
+        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} unreadCount={unreadCount} />
+      )}
+
+      {/* Main Content Area */}
+      <div className={hideLayout ? '' : 'pl-0 lg:pl-65'}>
+        
+        {/* Navbar rendered conditionally */}
+        {!hideLayout && (
+          <Navbar activeTab={activeTab} setActiveTab={setActiveTab} unreadCount={unreadCount} />
+        )}
+
+        <main className={hideLayout ? 'min-h-screen' : 'page-content min-h-[calc(100vh-64px)]'}>
+          <Routes>
+            {/* Core Dashboard & General Pages */}
+            <Route path="/" element={<ProtectedRoute><Dashboard setActiveTab={setActiveTab} /></ProtectedRoute>} />
+            <Route path="/home" element={<ProtectedRoute><Home setActiveTab={setActiveTab} /></ProtectedRoute>} />
+            
+            {/* Product Management */}
+            <Route path="/products" element={<ProtectedRoute><Product setActiveTab={setActiveTab} /></ProtectedRoute>} />
+            <Route path="/add-product" element={<ProtectedRoute><AddProduct setActiveTab={setActiveTab} /></ProtectedRoute>} />
+            <Route path="/update-product/:id" element={<ProtectedRoute><UpdateProduct setActiveTab={setActiveTab} /></ProtectedRoute>} />
+            <Route path="/performance" element={<ProtectedRoute><ProductPerformance setActiveTab={setActiveTab} /></ProtectedRoute>} />
+
+            {/* Sales & Analytics */}
+            <Route path="/sales" element={<ProtectedRoute><Sales setActiveTab={setActiveTab} /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute><Report /></ProtectedRoute>} />
+
+            {/* Notifications & Settings */}
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute>
+                  <Notifications setActiveTab={setActiveTab} />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/settings" element={<ProtectedRoute><Settings setActiveTab={setActiveTab} /></ProtectedRoute>} />
+
+            {/* Authentication Routes (Layout Hidden) */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/verifyemail" element={<VerifyEmail />} />
+            <Route path="/auth/ebay/callback" element={<Redirect />} />
+          </Routes>
+        </main>
+
+      </div>
+    </div>
   );
 }

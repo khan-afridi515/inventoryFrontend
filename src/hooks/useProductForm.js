@@ -3,6 +3,14 @@ import { INITIAL_PRODUCT_FORM } from '../constants/product.constants';
 import { validateProductForm, validateImageFile } from '../shared/utils/validateProduct';
 import { sanitizeText } from '../shared/utils/sanitize';
 
+const toBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Failed to read the selected image.'));
+    reader.readAsDataURL(file);
+  });
+
 /**
  * Owns all state and behavior for the Add Product form: field values,
  * validation errors, image upload/preview, reset, and submit. Keeping
@@ -19,12 +27,12 @@ export function useProductForm(onSave) {
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
   const [imageError, setImageError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const objectUrlRef = useRef(null);
 
   const setField = useCallback((field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear the field's error as soon as the person edits it, rather
-    // than making them wait for the next submit attempt.
     setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
   }, []);
 
@@ -62,24 +70,28 @@ export function useProductForm(onSave) {
       setErrors(validationErrors);
       if (Object.keys(validationErrors).length > 0) return;
 
-      // Sanitize free-text fields at the form boundary, before they
-      // ever reach a request payload or get rendered elsewhere.
+      setSubmitError(null);
+      setSuccessMessage(null);
+
       const payload = {
-        ...formData,
-        name: sanitizeText(formData.name),
+        productName: sanitizeText(formData.name),
+        quantity: Number(formData.currentQuantity || 0),
+        minimumQuantity: Number(formData.minimumQuantity || 0),
+        supplierCost: Number(formData.purchasePrice || 0),
+        Category: sanitizeText(formData.category),
+        sellingPrice: Number(formData.sellingPrice || 0),
         supplierName: sanitizeText(formData.supplierName),
         description: sanitizeText(formData.description),
-        purchasePrice: Number(formData.purchasePrice),
-        sellingPrice: Number(formData.sellingPrice),
-        currentQuantity: Number(formData.currentQuantity),
-        minimumStock: Number(formData.minimumStock),
-        image: imageFile,
+        image: imageFile ? await toBase64(imageFile) : '',
       };
 
       setIsSubmitting(true);
       try {
-        await onSave?.(payload);
+        const response = await onSave?.(payload);
+        setSuccessMessage(response?.message || response?.msg || 'Product added successfully.');
         resetForm();
+      } catch (err) {
+        setSubmitError(err?.message ?? 'Could not save the product.');
       } finally {
         setIsSubmitting(false);
       }
@@ -93,6 +105,8 @@ export function useProductForm(onSave) {
     imagePreviewUrl,
     imageError,
     isSubmitting,
+    submitError,
+    successMessage,
     setField,
     handleImageChange,
     handleSubmit,

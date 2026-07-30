@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/authContext';
 import { 
   LayoutGrid, 
   Package, 
@@ -31,8 +32,21 @@ const StockpileLogoIcon = () => (
   </svg>
 );
 
-export default function Sidebar({ activeTab, setActiveTab, isCollapsed = false, toggleCollapse }) {
+function getInitials(name) {
+  if (!name) return 'U';
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join('');
+}
+
+export default function Sidebar({ activeTab, setActiveTab, isCollapsed = false, toggleCollapse, unreadCount = 0 }) {
+  const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const userInitials = getInitials(user?.name);
+  const userFullName = user?.name || 'Stockpile User';
   const location = useLocation();
 
   const menuItems = [
@@ -42,7 +56,7 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed = false, 
     { id: 'sales', label: 'Sales', icon: CheckSquare, path: '/sales' },
     { id: 'reports', label: 'Reports', icon: BarChart3, path: '/reports' },
     { id: 'performance', label: 'Product Performance', icon: TrendingUp, path: '/performance' },
-    { id: 'notifications', label: 'Notifications', icon: Bell, badge: 4, path: '/notifications' },
+    { id: 'notifications', label: 'Notifications', icon: Bell, badge: unreadCount, path: '/notifications' },
     { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
   ];
 
@@ -60,7 +74,7 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed = false, 
       {/* Mobile Menu Icon Toggle Button */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-3 left-3 z-50 p-2 rounded-xl bg-white border border-[#E2E8F0] text-[#0F172A] shadow-xs hover:bg-[#F8FAFC] transition"
+        className="lg:hidden fixed top-3 left-3 z-50 p-2 rounded-xl bg-white border border-border text-text shadow-xs hover:bg-bg transition"
         aria-label="Toggle Navigation"
       >
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -76,20 +90,20 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed = false, 
 
       {/* Sidebar Drawer */}
       <aside 
-        className={`fixed left-0 top-0 h-screen bg-white border-r border-[#E2E8F0] flex flex-col justify-between py-6 z-40 font-sans transition-all duration-300 ease-in-out ${
-          mobileOpen ? 'translate-x-0 w-[260px]' : '-translate-x-full lg:translate-x-0'
+        className={`fixed left-0 top-0 h-screen bg-white border-r border-border flex flex-col justify-between py-6 z-40 font-sans transition-all duration-300 ease-in-out ${
+          mobileOpen ? 'translate-x-0 w-65' : '-translate-x-full lg:translate-x-0'
         } ${
-          isCollapsed ? 'lg:w-[80px]' : 'lg:w-[260px]'
+          isCollapsed ? 'lg:w-20' : 'lg:w-65'
         }`}
       >
         <div className="flex flex-col">
           <div className={`flex items-center pb-8 px-4 ${isCollapsed ? 'lg:justify-center' : 'justify-between px-6'}`}>
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-11 h-11 rounded-[14px] bg-[#3B82F6] flex items-center justify-center shadow-sm shrink-0">
+              <div className="w-11 h-11 rounded-[14px] bg-primary flex items-center justify-center shadow-sm shrink-0">
                 <StockpileLogoIcon />
               </div>
               {(!isCollapsed || mobileOpen) && (
-                <span className="text-lg font-bold text-[#0F172A] truncate">
+                <span className="text-lg font-bold text-text truncate">
                   Stockpile
                 </span>
               )}
@@ -98,7 +112,7 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed = false, 
             {toggleCollapse && (
               <button
                 onClick={toggleCollapse}
-                className="hidden lg:flex p-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#64748B] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors"
+                className="hidden lg:flex p-1.5 rounded-lg border border-border bg-white text-muted hover:bg-bg hover:text-text transition-colors"
                 title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               >
                 {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -117,17 +131,17 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed = false, 
                   to={item.path}
                   onClick={() => handleNavClick(item.id)}
                   title={isCollapsed && !mobileOpen ? item.label : undefined}
-                  className={`w-full flex items-center rounded-lg transition-all duration-200 group ${
-                    isCollapsed && !mobileOpen ? 'lg:justify-center p-3' : 'justify-between px-4 py-3'
+                  className={`w-full flex items-center rounded-lg text-[11px] tracking-tighter gap-1 transition-all duration-200 group relative ${
+                    isCollapsed && !mobileOpen ? 'lg:justify-center p-3' : 'justify-between px-2 py-1.5'
                   } ${
                     isActive 
-                      ? 'bg-[#E3F2FD] text-[#3B82F6]' 
+                      ? 'bg-[#E3F2FD] text-primary' 
                       : 'text-[#475569] hover:bg-[#F1F5F9]'
                   }`}
                 >
                   <div className={`flex items-center gap-3 ${isCollapsed && !mobileOpen ? 'lg:justify-center' : ''}`}>
                     <IconComponent className={`h-5 w-5 shrink-0 transition-colors ${
-                      isActive ? 'text-[#3B82F6]' : 'text-[#64748B]'
+                      isActive ? 'text-primary' : 'text-muted'
                     }`} />
                     
                     {(!isCollapsed || mobileOpen) && (
@@ -137,8 +151,16 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed = false, 
                     )}
                   </div>
                   
-                  {(!isCollapsed || mobileOpen) && item.badge && (
-                    <span className="bg-[#EF4444] text-white text-xs font-bold px-2.5 py-0.5 rounded-full min-w-5 h-5 flex items-center justify-center">
+                  {/* Expanded badge display */}
+                  {(!isCollapsed || mobileOpen) && item.badge > 0 && (
+                    <span className="bg-negative text-white text-xs font-bold px-2.5 py-0.5 rounded-full min-w-5 h-5 flex items-center justify-center">
+                      {item.badge}
+                    </span>
+                  )}
+
+                  {/* Collapsed view badge indicator */}
+                  {isCollapsed && !mobileOpen && item.badge > 0 && (
+                    <span className="absolute top-2 right-2 bg-negative text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
                       {item.badge}
                     </span>
                   )}
@@ -149,16 +171,16 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed = false, 
         </div>
 
         <div className="px-3">
-          <div className={`flex items-center bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl ${
+          <div className={`flex items-center bg-bg border border-border rounded-xl ${
             isCollapsed && !mobileOpen ? 'lg:justify-center p-2.5' : 'gap-3 p-4'
           }`}>
-            <div className="w-10 h-10 rounded-lg bg-[#DBEAFE] text-[#3B82F6] font-bold text-sm flex items-center justify-center shrink-0">
-              AR
+            <div className="w-10 h-10 rounded-lg bg-[#DBEAFE] text-primary font-bold text-sm flex items-center justify-center shrink-0">
+              {userInitials}
             </div>
             {(!isCollapsed || mobileOpen) && (
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-semibold text-[#0F172A] truncate">Amara Reyes</span>
-                <span className="text-[11px] text-[#64748B] mt-0.5 truncate">Inventory Manager</span>
+                <span className="text-xs font-semibold text-text truncate">{userFullName}</span>
+                <span className="text-[11px] text-muted mt-0.5 truncate">Inventory Manager</span>
               </div>
             )}
           </div>

@@ -12,12 +12,11 @@ export const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg'];
 
 export const INITIAL_PRODUCT_FORM = {
   name: '',
-  sku: '',
   category: CATEGORY_OPTIONS[0].value,
   supplierName: '',
   purchasePrice: '',
   sellingPrice: '',
   currentQuantity: '',
-  minimumStock: '',
+  minimumQuantity: '',
   description: '',
 };

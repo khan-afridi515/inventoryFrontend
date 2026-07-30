@@ -19,7 +19,7 @@ export function ReportsHeader({ onAction }) {
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      {/* <div className="flex flex-wrap gap-2">
         {ACTIONS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -31,7 +31,7 @@ export function ReportsHeader({ onAction }) {
             {label}
           </button>
         ))}
-      </div>
+      </div> */}
     </div>
   );
 }

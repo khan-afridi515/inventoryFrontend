@@ -25,12 +25,12 @@ export default function Settings({ setActiveTab }) {
   };
 
   return (
-    <div className="dashboard-page-container bg-[#F8FAFC] font-sans  px-6 lg:px-8 pt-1 pb-5 -mt-2">
+    <div className="dashboard-page-container bg-bg font-sans  px-6 lg:px-8 pt-1 pb-5 -mt-2">
       
       {/* Header Section */}
       <div className="mb-6">
-        <h1 className="text-[32px] font-bold text-[#0F172A] tracking-tight">Settings</h1>
-        <p className="text-[14px] text-[#64748B] mt-0.5 font-normal">
+        <h1 className="text-[32px] font-bold text-text tracking-tight">Settings</h1>
+        <p className="text-[14px] text-muted mt-0.5 font-normal">
           Manage your workspace preferences.
         </p>
       </div>
@@ -38,16 +38,16 @@ export default function Settings({ setActiveTab }) {
       <div className="space-y-6">
         
         {/* SECTION 1: Notifications */}
-        <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm">
-          <h2 className="text-[18px] font-bold text-[#0F172A] mb-5 tracking-tight">Notifications</h2>
+        <div className="bg-white border border-border rounded-2xl p-6 shadow-sm">
+          <h2 className="text-[18px] font-bold text-text mb-5 tracking-tight">Notifications</h2>
           
           <div className="divide-y divide-[#F1F5F9]">
             
             {/* Low stock alerts */}
             <div className="flex items-center justify-between py-4 first:pt-0 pb-4">
               <div className="flex flex-col pr-4">
-                <span className="text-[14px] font-bold text-[#0F172A]">Low stock alerts</span>
-                <span className="text-[13px] text-[#64748B] font-normal mt-0.5">
+                <span className="text-[14px] font-bold text-text">Low stock alerts</span>
+                <span className="text-[13px] text-muted font-normal mt-0.5">
                   Get notified when a product falls below minimum stock.
                 </span>
               </div>
@@ -69,8 +69,8 @@ export default function Settings({ setActiveTab }) {
             {/* Daily sales summary */}
             <div className="flex items-center justify-between py-4">
               <div className="flex flex-col pr-4">
-                <span className="text-[14px] font-bold text-[#0F172A]">Daily sales summary</span>
-                <span className="text-[13px] text-[#64748B] font-normal mt-0.5">
+                <span className="text-[14px] font-bold text-text">Daily sales summary</span>
+                <span className="text-[13px] text-muted font-normal mt-0.5">
                   Receive a summary of the day's sales every evening.
                 </span>
               </div>
@@ -92,8 +92,8 @@ export default function Settings({ setActiveTab }) {
             {/* New sale notifications */}
             <div className="flex items-center justify-between py-4 last:pb-0">
               <div className="flex flex-col pr-4">
-                <span className="text-[14px] font-bold text-[#0F172A]">New sale notifications</span>
-                <span className="text-[13px] text-[#64748B] font-normal mt-0.5">
+                <span className="text-[14px] font-bold text-text">New sale notifications</span>
+                <span className="text-[13px] text-muted font-normal mt-0.5">
                   Notify instantly whenever a product is sold.
                 </span>
               </div>
@@ -116,13 +116,13 @@ export default function Settings({ setActiveTab }) {
         </div>
 
         {/* SECTION 2: Workspace */}
-        <div className="bg-white border border-[#E2E8F0] rounded-2xl p-6 shadow-sm">
-          <h2 className="text-[18px] font-bold text-[#0F172A] mb-5 tracking-tight">Workspace</h2>
+        <div className="bg-white border border-border rounded-2xl p-6 shadow-sm">
+          <h2 className="text-[18px] font-bold text-text mb-5 tracking-tight">Workspace</h2>
           
           <div className="flex items-center justify-between py-1">
             <div className="flex flex-col pr-4">
-              <span className="text-[14px] font-bold text-[#0F172A]">Auto-export reports</span>
-              <span className="text-[13px] text-[#64748B] font-normal mt-0.5">
+              <span className="text-[14px] font-bold text-text">Auto-export reports</span>
+              <span className="text-[13px] text-muted font-normal mt-0.5">
                 Automatically export monthly reports to PDF.
               </span>
             </div>
