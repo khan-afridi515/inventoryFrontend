@@ -12,6 +12,8 @@ import {
 import { useSalesData } from './hooks/useSalesData';
 import { usePagination } from '../../shared/hooks/usePagination';
 import { Pagination } from '../../shared/components/common/Pagination';
+import { ebayAuth } from '../../context/ebayContext';
+
 
 export default function Sales({ setActiveTab }) {
   useEffect(() => {
