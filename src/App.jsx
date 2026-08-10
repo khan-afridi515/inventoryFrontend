@@ -24,6 +24,7 @@ import { NotificationProvider, useNotifications } from './context/notificationCo
 import UpdateProduct from './pages/update/update';
 import ProductPerformance from './pages/performance/productPerformance';
 import Report from './pages/reports/Reports';
+import Welcome from './pages/welcome';
 // import { updateProduct } from './services/productServices';
 
 
@@ -181,6 +182,7 @@ function AppContent({ activeTab, setActiveTab }) {
     location.pathname === '/login' || 
     location.pathname === '/signup' || 
     location.pathname === '/verifyemail' || 
+    location.pathname === '/welcome' || 
     location.pathname.startsWith('/auth');
 
   return (
@@ -231,6 +233,9 @@ function AppContent({ activeTab, setActiveTab }) {
             <Route path="/signup" element={<Signup />} />
             <Route path="/verifyemail" element={<VerifyEmail />} />
             <Route path="/auth/ebay/callback" element={<Redirect />} />
+
+            {/* Welcome page after login */}
+            <Route path="/welcome" element={<ProtectedRoute><Welcome setActiveTab={setActiveTab} /></ProtectedRoute>} />
           </Routes>
         </main>
 

@@ -64,8 +64,8 @@ export default function Login() {
         password: formData.password,
       });
 
-      navigate("/");
-      console.log("Login successfull");
+      navigate("/welcome");
+      console.log("Login successful");
     } catch (err) {
       console.error(err);
     }

@@ -131,7 +131,7 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed = false, 
                   to={item.path}
                   onClick={() => handleNavClick(item.id)}
                   title={isCollapsed && !mobileOpen ? item.label : undefined}
-                  className={`w-full flex items-center rounded-lg text-[11px] tracking-tighter gap-1 transition-all duration-200 group relative ${
+                  className={`w-full flex items-center rounded-lg text-[11px] tracking-tighter gap-2 transition-all duration-200 group relative ${
                     isCollapsed && !mobileOpen ? 'lg:justify-center p-3' : 'justify-between px-2 py-1.5'
                   } ${
                     isActive 

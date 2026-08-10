@@ -104,7 +104,7 @@ function Dashboard({ setActiveTab }) {
   // Return a single wrapper to ensure layout alignment is always preserved
   return (
     <div className="dashboard-page-container font-outfit px-6 lg:px-8 py-5 -ml-5 -mt-5">
-      <button className='px-4 py-2 bg-red-500 text-white text-sm rounded-md ml-4 font-bold' onClick={handleEbay}>Connect Ebay</button>
+      {/* <button className='px-4 py-2 bg-red-500 text-white text-sm rounded-md ml-4 font-bold' onClick={handleEbay}>Connect Ebay</button> */}
 
       {/* Show Skeleton if Loading */}
       {loading && <DashboardSkeleton />}

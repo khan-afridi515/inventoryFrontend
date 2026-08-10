@@ -28,22 +28,23 @@ export default function Sales({ setActiveTab }) {
   const { getEbayOrders, ebayError, ebayMessage, ebayData } = ebayAuth();
 
   useEffect(() => {
-    if (setActiveTab) {
-      setActiveTab('sales');
-    }
-  }, [setActiveTab]);
+    let isMounted = true;
 
-  useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await getEbayOrders();
-        console.log("Orders received in Sales:", response);
+        await getEbayOrders();
       } catch (error) {
-        console.error("Failed to fetch eBay orders:", error);
+        if (isMounted) {
+          console.error('Failed to fetch eBay orders for sales:', error);
+        }
       }
     };
 
     fetchOrders();
+
+    return () => {
+      isMounted = false;
+    };
   }, [getEbayOrders]);
 
   const salesRows = useMemo(() => {

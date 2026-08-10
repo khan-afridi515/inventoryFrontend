@@ -13,10 +13,7 @@ const Redirect = () => {
         try {
             console.log('eBay authorization code received:', authorizationCode);
             await getebayToken(authorizationCode);
-            setTimeout(()=>{
-                navigate('/');
-            }, 3000)
-            
+            navigate('/');
         } catch (exchangeError) {
             console.error('Token exchange failed:', exchangeError);
             setError('Failed to complete eBay authorization.');
