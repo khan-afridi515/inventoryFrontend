@@ -49,7 +49,7 @@ export const EbayProvider = ({ children }) => {
       loadingOrdersRef.current = true;
 
       const response = await ebayOrders();
-      console.log("response", response);
+      // console.log("response", response);
       const nextData = Array.isArray(response?.data) ? response.data : [];
       setEbayMessage("Fetched eBay orders successfully");
       setEbayData(nextData);

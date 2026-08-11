@@ -1,5 +1,5 @@
 import React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ebayAuth } from "./context/ebayContext";
 
@@ -7,17 +7,23 @@ const Redirect = () => {
     const navigate = useNavigate();
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [success, setSuccess] = useState(false);
+    const timeoutRef = useRef(null);
     const { getebayToken, ebayError, ebayLoading, ebayMessage } = ebayAuth();
 
     const exchangeCodeForToken = async (authorizationCode) => {
         try {
             console.log('eBay authorization code received:', authorizationCode);
             await getebayToken(authorizationCode);
-            navigate('/');
+            setSuccess(true);
+            setLoading(false);
+
+            timeoutRef.current = window.setTimeout(() => {
+                navigate('/');
+            }, 3000);
         } catch (exchangeError) {
             console.error('Token exchange failed:', exchangeError);
             setError('Failed to complete eBay authorization.');
-        } finally {
             setLoading(false);
         }
     };
@@ -78,6 +84,14 @@ const Redirect = () => {
         handleRedirect();
     }, [navigate]);
 
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
+
     if (error || ebayError) {
         return (
             <div style={{ padding: "20px", textAlign: "center" }}>
@@ -90,13 +104,17 @@ const Redirect = () => {
 
     return (
         <div style={{ padding: "20px", textAlign: "center" }}>
-            <h1>Connecting eBay...</h1>
+            <h1>{success ? "Welcome!" : "Connecting eBay..."}</h1>
             {(loading || ebayLoading) && <p>Please wait...</p>}
-            {ebayMessage && (
+            {success && (
                 <>
-                    <p style={{ color: "green", margin: "20px 0" }}>{ebayMessage}</p>
-                    <button onClick={() => navigate("/")}>Return to Home</button>
+                    <p style={{ color: "green", margin: "20px 0" }}>
+                        eBay authorization completed successfully. Redirecting to home in 3 seconds...
+                    </p>
                 </>
+            )}
+            {!success && ebayMessage && (
+                <p style={{ color: "green", margin: "20px 0" }}>{ebayMessage}</p>
             )}
         </div>
     );
