@@ -75,6 +75,7 @@ export function useProductForm(onSave) {
 
       const payload = {
         productName: sanitizeText(formData.name),
+        sku: sanitizeText(formData.sku),
         quantity: Number(formData.currentQuantity || 0),
         minimumQuantity: Number(formData.minimumQuantity || 0),
         supplierCost: Number(formData.purchasePrice || 0),

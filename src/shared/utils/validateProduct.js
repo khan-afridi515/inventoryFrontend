@@ -22,8 +22,13 @@ export function validateProductForm(formData) {
   const errors = {};
 
   if (isBlank(formData.name)) errors.name = 'Product name is required.';
+  if (isBlank(formData.sku)) errors.sku = 'SKU is required.';
   if (isBlank(formData.category)) errors.category = 'Category is required.';
   if (isBlank(formData.supplierName)) errors.supplierName = 'Supplier name is required.';
+
+  if (formData.sku && formData.sku.trim().length > 100) {
+    errors.sku = 'SKU must be 100 characters or fewer.';
+  }
 
   if (!isValidNonNegativeNumber(formData.purchasePrice)) {
     errors.purchasePrice = 'Enter a valid purchase price (0 or more).';

@@ -14,6 +14,7 @@ const UpdateProduct = () => {
   const [formData, setFormData] = useState({
     productImage: null,
     productName: '',
+    sku: '',
     category: '',
     supplierName: '',
     purchasePrice: '',
@@ -63,6 +64,9 @@ const UpdateProduct = () => {
       if (formData.productName && String(formData.productName).trim() !== '') {
         payload.productName = String(formData.productName).trim();
       }
+      if (formData.sku && String(formData.sku).trim() !== '') {
+        payload.sku = String(formData.sku).trim();
+      }
       if (formData.category) payload.category = formData.category;
       if (formData.supplierName && String(formData.supplierName).trim() !== '') {
         payload.supplierName = String(formData.supplierName).trim();
@@ -87,6 +91,7 @@ const UpdateProduct = () => {
     setFormData({
       productImage: null,
       productName: '',
+      sku: '',
       category: '',
       supplierName: '',
       purchasePrice: '',
@@ -175,7 +180,19 @@ const UpdateProduct = () => {
               />
             </div>
 
-            {/* SKU removed */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                SKU <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="sku"
+                value={formData.sku}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="e.g. WMX-1001"
+              />
+            </div>
 
             {/* Category */}
             <div>

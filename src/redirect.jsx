@@ -109,7 +109,7 @@ const Redirect = () => {
             {success && (
                 <>
                     <p style={{ color: "green", margin: "20px 0" }}>
-                        eBay authorization completed successfully. Redirecting to home in 3 seconds...
+                        eBay authorization completed successfully!
                     </p>
                 </>
             )}

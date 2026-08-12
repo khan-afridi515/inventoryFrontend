@@ -25,6 +25,16 @@ export function ProductDetailsPanel({ formData, errors, setField }) {
           error={errors.name}
         />
 
+        <TextField
+          id="sku"
+          label="SKU"
+          required
+          value={formData.sku}
+          onChange={(v) => setField('sku', v)}
+          placeholder="e.g. WMX-1001"
+          error={errors.sku}
+        />
+
         <SelectField
           id="category"
           label="Category"
