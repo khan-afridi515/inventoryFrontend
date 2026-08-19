@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { ebayNotifications } from '../services/ebayServices';
 import { initializeSocketClient, subscribeProductSold, disconnectSocket } from '../socket';
 import { API_BASE_URL } from '../api/api';
@@ -12,6 +12,30 @@ export const useNotifications = () => {
   return ctx;
 };
 
+const formatNotification = (record) => {
+  const fallbackId = `${record?.orderId || record?._id || record?.id || record?.eventDate || Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const items = Array.isArray(record?.items) ? record.items : Array.isArray(record?.skuItems) ? record.skuItems : [];
+  const totalUnits = items.reduce((sum, item) => sum + Number(item?.quantity ?? item?.qty ?? 1), 0);
+  const productName = items.length
+    ? items
+        .map((item) => item?.title || item?.name || item?.sku || 'Product')
+        .filter(Boolean)
+        .join(', ')
+    : record?.productName || record?.buyer || 'Product';
+
+  return {
+    id: record?.orderId || record?.id || record?._id || fallbackId,
+    units: totalUnits || 1,
+    productName,
+    action: 'sold',
+    remainingStock: record?.remainingStock ?? '-',
+    time: record?.eventDate ? formatShortDate(record.eventDate) : 'Just now',
+    isUnread: true,
+    type: 'Sales',
+    buyer: record?.buyer || '',
+  };
+};
+
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState(() => {
     try {
@@ -21,73 +45,79 @@ export const NotificationProvider = ({ children }) => {
       return [];
     }
   });
+  const [saleAlert, setSaleAlert] = useState(null);
+  const alertTimeoutRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem('app_notifications', JSON.stringify(notifications));
   }, [notifications]);
 
   useEffect(() => {
-    // Disabled notifications fetch and socket initialization to prevent
-    // connection errors when backend is not available during development.
-    // Original implementation commented out below.
-    /*
+    if (!saleAlert) return;
+
+    if (alertTimeoutRef.current) {
+      clearTimeout(alertTimeoutRef.current);
+    }
+
+    alertTimeoutRef.current = setTimeout(() => {
+      setSaleAlert(null);
+    }, 4000);
+
+    return () => {
+      if (alertTimeoutRef.current) {
+        clearTimeout(alertTimeoutRef.current);
+      }
+    };
+  }, [saleAlert]);
+
+  useEffect(() => {
     let mounted = true;
 
-    (async () => {
+    const loadInitialNotifications = async () => {
       try {
-        const data = await ebayNotifications();
-        const records = Array.isArray(data) ? data : (Array.isArray(data.notifications) ? data.notifications : []);
-        const mapped = records.map((rec) => {
-          const id = rec.orderId || rec.id || rec._id || `${rec.eventDate || Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-          const items = rec.items || rec.skuItems || [];
-          const units = items.reduce((s, it) => s + (it.quantity || it.qty || 1), 0);
-          const productName = items.length ? (items[0].title || items[0].name || items[0].sku || items.map(i => i.title || i.name).join(', ')) : (rec.productName || 'Product');
-          const remainingStock = rec.remainingStock ?? '-';
-          const time = rec.eventDate ? formatShortDate(rec.eventDate) : 'Today';
-          return {
-            id,
-            units,
-            productName,
-            action: 'sold',
-            remainingStock,
-            time,
-            isUnread: true,
-            type: 'Sales'
-          };
-        });
+        const response = await ebayNotifications();
+        const records = Array.isArray(response)
+          ? response
+          : Array.isArray(response?.notifications)
+            ? response.notifications
+            : [];
 
-        if (mounted && mapped.length > 0) {
-          setNotifications(prev => {
-            const deduped = mapped.filter(m => !prev.some(p => p.id === m.id));
-            return [...deduped, ...prev];
-          });
-        }
+        if (!mounted || !records.length) return;
+
+        const mapped = records.map(formatNotification);
+        setNotifications((prev) => {
+          const nextIds = new Set(prev.map((item) => item.id));
+          const newItems = mapped.filter((item) => !nextIds.has(item.id));
+          return [...newItems, ...prev];
+        });
       } catch (err) {
         console.warn('Failed loading notifications', err);
       }
-    })();
+    };
 
-    const socket = initializeSocketClient(API_BASE_URL || window.location.origin);
+    loadInitialNotifications();
+
+    const socketUrl = API_BASE_URL || window.location.origin;
+    initializeSocketClient(socketUrl);
     const unsubscribe = subscribeProductSold((payload) => {
       try {
-        const id = payload.orderId || `${payload.eventDate || Date.now()}-${Math.random().toString(36).slice(2,8)}`;
-        const items = payload.items || payload.skuItems || [];
-        const units = items.reduce((s, it) => s + (it.quantity || it.qty || 1), 0);
-        const productName = items.length ? (items[0].title || items[0].name || items[0].sku || items.map(i => i.title || i.name).join(', ')) : (payload.productName || payload.buyer || 'Product');
-        const time = payload.eventDate ? formatShortDate(payload.eventDate) : 'Just now';
-        const newNotif = {
-          id,
-          units,
-          productName,
-          action: 'sold',
-          remainingStock: '-',
-          time,
-          isUnread: true,
-          type: 'Sales'
-        };
-        setNotifications(prev => [newNotif, ...prev]);
-      } catch (e) {
-        console.warn('Error handling productSold payload', e);
+        if (!payload) return;
+        const nextNotification = formatNotification(payload);
+        const buyerName = payload?.buyer || 'Customer';
+        const itemLabel = nextNotification.productName || 'Product';
+
+        setNotifications((prev) => {
+          const filtered = prev.filter((item) => item.id !== nextNotification.id);
+          return [nextNotification, ...filtered];
+        });
+
+        setSaleAlert({
+          id: nextNotification.id,
+          title: 'Product sold',
+          message: `${itemLabel} sold to ${buyerName} (${nextNotification.units} unit${nextNotification.units > 1 ? 's' : ''})`,
+        });
+      } catch (err) {
+        console.warn('Error handling productSold payload', err);
       }
     });
 
@@ -96,17 +126,26 @@ export const NotificationProvider = ({ children }) => {
       if (unsubscribe) unsubscribe();
       disconnectSocket();
     };
-    */
-
-    // No-op while backend is unavailable.
-    return () => {};
   }, []);
 
-  const unreadCount = notifications.filter(n => n.isUnread).length;
+  const unreadCount = notifications.filter((n) => n.isUnread).length;
 
   return (
-    <NotificationContext.Provider value={{ notifications, setNotifications, unreadCount }}>
+    <NotificationContext.Provider value={{ notifications, setNotifications, unreadCount, saleAlert, setSaleAlert }}>
       {children}
+
+      {saleAlert && (
+        <div className="fixed right-5 top-5 z-[9999] w-[320px] rounded-2xl border border-emerald-500/30 bg-slate-900/90 p-4 text-white shadow-2xl backdrop-blur-sm">
+          <div className="mb-1 flex items-center justify-between gap-3">
+            <span className="inline-flex items-center rounded-full bg-emerald-500/20 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-300">
+              Sale
+            </span>
+            <span className="text-[10px] text-slate-300">Just now</span>
+          </div>
+          <p className="text-sm font-semibold text-white">{saleAlert.title}</p>
+          <p className="mt-1 text-sm text-slate-200">{saleAlert.message}</p>
+        </div>
+      )}
     </NotificationContext.Provider>
   );
 };

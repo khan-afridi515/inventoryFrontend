@@ -558,10 +558,10 @@ export default function Products({ setActiveTab }) {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full pl-4 pr-10 py-2.5 border border-[#E2E8F0] rounded-2xl text-[14px] font-semibold text-[#0F172A] bg-white appearance-none cursor-pointer focus:outline-none focus:border-[#3B82F6] transition-all hover:bg-slate-50"
+              className="w-full pl-4 pr-10 py-2.5 border border-[#E2E8F0] rounded-2xl text-xs md:text-[14px] font-semibold text-[#0F172A] bg-white appearance-none cursor-pointer focus:outline-none focus:border-[#3B82F6] transition-all hover:bg-slate-50"
             >
               {dynamicCategories.map((cat, idx) => (
-                <option key={idx} value={cat} className="text-[#334155] py-2">
+                <option key={idx} value={cat} className="text-[11px] md:text-[13px] text-[#334155] py-2">
                   {cat}
                 </option>
               ))}
@@ -573,12 +573,12 @@ export default function Products({ setActiveTab }) {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full pl-4 pr-10 py-2.5 border border-[#E2E8F0] rounded-2xl text-[14px] font-semibold text-[#0F172A] bg-white appearance-none cursor-pointer focus:outline-none focus:border-[#3B82F6] transition-all hover:bg-slate-50"
+              className="w-full pl-4 pr-10 py-2.5 border border-[#E2E8F0] rounded-2xl text-xs md:text-[14px] font-semibold text-[#0F172A] bg-white appearance-none cursor-pointer focus:outline-none focus:border-[#3B82F6] transition-all hover:bg-slate-50"
             >
-              <option value="All Statuses">All Statuses</option>
-              <option value="In Stock">In Stock</option>
-              <option value="Low Stock">Low Stock</option>
-              <option value="Out of Stock">Out of Stock</option>
+              <option className="text-[11px] md:text-[13px]" value="All Statuses">All Statuses</option>
+              <option className="text-[11px] md:text-[13px]" value="In Stock">In Stock</option>
+              <option className="text-[11px] md:text-[13px]" value="Low Stock">Low Stock</option>
+              <option className="text-[11px] md:text-[13px]" value="Out of Stock">Out of Stock</option>
             </select>
             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#0F172A] pointer-events-none stroke-[2.5]" />
           </div>

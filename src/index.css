@@ -66,6 +66,6 @@
     .dashboard-page-container {
        
          
-        @apply w-full pt-4 px-4 pb-6 md:pl-2.5 md:pr-2.5 antialiased tracking-tight;
+        @apply w-full pt-2 px-2 pb-3 md:pl-2.5 md:pr-2.5 antialiased tracking-tight;
     }
 }

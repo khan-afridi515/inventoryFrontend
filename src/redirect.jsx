@@ -2,12 +2,15 @@ import React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ebayAuth } from "./context/ebayContext";
+import { setupEbayNotifications } from "./services/ebayServices";
 
 const Redirect = () => {
     const navigate = useNavigate();
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
     const [success, setSuccess] = useState(false);
+    const [notificationSetupError, setNotificationSetupError] = useState(null);
+    const [notificationSetupSuccess, setNotificationSetupSuccess] = useState(null);
     const timeoutRef = useRef(null);
     const { getebayToken, ebayError, ebayLoading, ebayMessage } = ebayAuth();
 
@@ -15,6 +18,18 @@ const Redirect = () => {
         try {
             console.log('eBay authorization code received:', authorizationCode);
             await getebayToken(authorizationCode);
+            
+            // Setup notifications after successful token exchange
+            try {
+                await setupEbayNotifications();
+                console.log('eBay notifications setup completed successfully');
+                setNotificationSetupSuccess('eBay notifications setup completed successfully');
+            } catch (notificationError) {
+                console.error('Failed to setup eBay notifications:', notificationError);
+                setNotificationSetupError(notificationError.message || 'Failed to setup eBay notifications');
+                // Don't throw - allow the flow to continue even if notification setup fails
+            }
+            
             setSuccess(true);
             setLoading(false);
 
@@ -111,6 +126,16 @@ const Redirect = () => {
                     <p style={{ color: "green", margin: "20px 0" }}>
                         eBay authorization completed successfully!
                     </p>
+                    {notificationSetupSuccess && (
+                        <p style={{ color: "green", margin: "15px 0", fontWeight: "500" }}>
+                            ✓ {notificationSetupSuccess}
+                        </p>
+                    )}
+                    {notificationSetupError && (
+                        <p style={{ color: "#F97316", margin: "15px 0", fontWeight: "500" }}>
+                            ⚠️ Warning: {notificationSetupError}. Your inventory system will continue to work normally.
+                        </p>
+                    )}
                 </>
             )}
             {!success && ebayMessage && (

@@ -23,3 +23,9 @@ export const ebayNotifications = () => {
         method: "GET"
     });
 }
+
+export const setupEbayNotifications = () => {
+    return apiRequest("ebay/notifications/setup", {
+        method: "POST"
+    });
+}
