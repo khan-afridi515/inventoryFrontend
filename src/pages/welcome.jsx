@@ -17,7 +17,8 @@ export default function Welcome({ setActiveTab }) {
     const state = crypto.randomUUID();
     localStorage.setItem('ebay_state', state);
     const url =
-      `https://auth.sandbox.ebay.com/oauth2/authorize` +
+      // `https://auth.sandbox.ebay.com/oauth2/authorize` +
+      `https://auth.ebay.com/oauth2/authorize` +
       `?client_id=${clientId}` +
       `&redirect_uri=${encodeURIComponent(ruName)}` +
       `&response_type=code` +
