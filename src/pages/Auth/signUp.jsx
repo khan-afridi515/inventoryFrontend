@@ -9,6 +9,8 @@ export default function Signup() {
 
   const { signUp, loading, error, message } = useAuth();
 
+  console.log("Error", error);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
