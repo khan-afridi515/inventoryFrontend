@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FaBoxOpen } from "react-icons/fa";
 import { FiMail, FiLock } from "react-icons/fi";
 import { useAuth } from "../../context/authContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 
 export default function Login() {
@@ -191,6 +191,8 @@ export default function Login() {
             {loading ? "Signing In..." : "Sign In"}
           </button>
         </form>
+        <p className="text-center mt-2">-----------</p>
+        <p className="text-center text-[14px]">Don't have an account ? <Link to="/signup" className="text-blue-500">Sign Up</Link></p>
       </div>
     </div>
   );
